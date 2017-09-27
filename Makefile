@@ -1,5 +1,5 @@
-SRC=src/example_ode.cc 
-OBJ=example_ode.o  
+SRC=src/repressilator.cc 
+OBJ=repressilator.o  
 
 CC=g++ #nvcc
 CFLAGS=-Wall #-O2 -std=c++11
@@ -10,12 +10,12 @@ LDFLAGS=$(INC) $(LIB)
 
 # all
 .PHONY: all
-all: ./bin/example_ode
+all: ./bin/repressilator
 
 %.o: src/%.cc
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
-./bin/example_ode: $(OBJ)
+./bin/repressilator: $(OBJ)
 	$(CC) $(LDFLAGS) $(CFLAGS)  -o $@ $^
 
 
@@ -23,8 +23,9 @@ all: ./bin/example_ode
 .PHONY: clean
 clean:
 	rm -f *.o
+	rm -f bin/*
 
 
 exec:
-	time ./bin/example_ode
+	time ./bin/repressilator
 
