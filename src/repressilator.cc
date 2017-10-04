@@ -45,13 +45,13 @@ int S[NSPECIES*NREACTIONS] = {	1,  0,  0,  0,  0,  0,  0,     // Species 1
 void Repressilator_ODE( const state_type &Y, state_type &dYdt, const double t ) {
 
 	// Reaction Rates
-	double R[NREACTIONS] = {(Y[4]>0)? Ktl*Y[4]:0 , 					// Reaction A
-					(Y[5]>0)? Ktl*Y[5]:0 ,				// Reaction B
-					(Y[6]>0)? Ktl*Y[6]:0 ,				// Reaction C
-					(Y[7]>0)? Ktl*Y[7]:0 ,				// Reaction D
-					(Y[1]>0)? Ktr/(1 + pow(Y[1]/KR, nR)):0 ,	// Reaction E
-					(Y[2]>0)? Ktr/(1 + pow(Y[2]/KR, nR)):0 ,	// Reaction F
-					(Y[0]>0)? Ktr/(1 + pow(Y[0]/KR, nR)):0 };	// Reaction G
+	double R[NREACTIONS] = {Ktl*Y[4] , 					// Reaction A
+					Ktl*Y[5] ,				// Reaction B
+					Ktl*Y[6] ,				// Reaction C
+					Ktl*Y[7] ,				// Reaction D
+					Ktr/(1 + pow(Y[1]/KR, nR)) ,	// Reaction E
+					Ktr/(1 + pow(Y[2]/KR, nR)) ,	// Reaction F
+					Ktr/(1 + pow(Y[0]/KR, nR)) };	// Reaction G
 
 	// Model: dYdt = S * R - d * Y
 	for (int i = 0; i < NSPECIES; ++i)

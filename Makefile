@@ -1,14 +1,13 @@
-SRC=src/repressilator.cc 
-OBJ=repressilator.o  
+SRC=src/repressilator_n.cc 
+OBJ=repressilator_n.o  
 
 CC=g++ #nvcc
-CFLAGS=-Wall #-O2 -std=c++11
+CFLAGS=-Wall 
 
 INC=-I./inc 
 LIB=-L./lib 
 LDFLAGS=$(INC) $(LIB)
 
-# all
 .PHONY: all
 all: ./bin/repressilator
 
@@ -19,12 +18,10 @@ all: ./bin/repressilator
 	$(CC) $(LDFLAGS) $(CFLAGS)  -o $@ $^
 
 
-# clean
 .PHONY: clean
 clean:
 	rm -f *.o
 	rm -f bin/*
-
 
 exec:
 	time ./bin/repressilator
