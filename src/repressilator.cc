@@ -14,8 +14,8 @@ typedef boost::array< double , NSPECIES > state_type;
 
 // Parameter definition
 const double Ktl = 1e-2;
-const double Ktr = 1e-9;
-const double KR = 1e-8;
+const double Ktr = 1e-3;
+const double KR = 1e-2;
 const double nR = 2;
 const double dprot = 1e-3;
 const double dmRNA = 1e-2;
@@ -31,27 +31,27 @@ const double decay[NSPECIES] = { dprot,	// Species 1
 						  dmRNA };	// Species 8
 
 
-// Stoichiometric matrix
-int S[NSPECIES*NREACTIONS] = {	1,  0,  0,  0,  0,  0,  0,		// Species 1
-							    0,  1,  0,  0,  0,  0,  0,		// Species 2
-								0,  0,  1,  0,  0,  0,  0,		// Species 3
-								0,  0,  0,  1,  0,  0,  0,		// Species 4
-								0,  0,  0,  0,  1,  0,  0,		// Species 5
-								0,  0,  0,  0,  0,  1,  0,		// Species 6
-								0,  0,  0,  0,  0,  0,  1,		// Species 7
-								0,  0,  0,  0,  0,  0,  1 };	// Species 8
-					// Reaction A   B   C   D   E   F   G
+// Stochiometric matrix
+int S[NSPECIES*NREACTIONS] = {	1,  0,  0,  0,  0,  0,  0,     // Species 1
+				0,  1,  0,  0,  0,  0,  0,     // Species 2
+				0,  0,  1,  0,  0,  0,  0,     // Species 3
+				0,  0,  0,  1,  0,  0,  0,     // Species 4
+				0,  0,  0,  0,  1,  0,  0,     // Species 5
+				0,  0,  0,  0,  0,  1,  0,     // Species 6
+				0,  0,  0,  0,  0,  0,  1,     // Species 7
+				0,  0,  0,  0,  0,  0,  1 };   // Species 8
+		// Reaction     A   B   C   D   E   F   G
 
 void Repressilator_ODE( const state_type &Y, state_type &dYdt, const double t ) {
 
 	// Reaction Rates
-	double R[NREACTIONS] = {(Y[4]>0)? Ktl*Y[4]:0 ,  					 // Reaction A
-							(Y[5]>0)? Ktl*Y[5]:0 ,				     // Reaction B
-							(Y[6]>0)? Ktl*Y[6]:0 ,				     // Reaction C
-							(Y[7]>0)? Ktl*Y[7]:0 ,				     // Reaction D
-							(Y[1]>0)? Ktr/(1 + pow(Y[1]/KR, nR)):0 ,       // Reaction E
-							(Y[2]>0)? Ktr/(1 + pow(Y[2]/KR, nR)):0 ,       // Reaction F
-							(Y[0]>0)? Ktr/(1 + pow(Y[0]/KR, nR)):0 };      // Reaction G
+	double R[NREACTIONS] = {(Y[4]>0)? Ktl*Y[4]:0 , 					// Reaction A
+					(Y[5]>0)? Ktl*Y[5]:0 ,				// Reaction B
+					(Y[6]>0)? Ktl*Y[6]:0 ,				// Reaction C
+					(Y[7]>0)? Ktl*Y[7]:0 ,				// Reaction D
+					(Y[1]>0)? Ktr/(1 + pow(Y[1]/KR, nR)):0 ,	// Reaction E
+					(Y[2]>0)? Ktr/(1 + pow(Y[2]/KR, nR)):0 ,	// Reaction F
+					(Y[0]>0)? Ktr/(1 + pow(Y[0]/KR, nR)):0 };	// Reaction G
 
 	// Model: dYdt = S * R - d * Y
 	for (int i = 0; i < NSPECIES; ++i)
@@ -113,7 +113,9 @@ int main(int argc, char **argv) {
 	// double step = 0.1;
 
 	state_type X0 = { 1e-6, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
-	integrate( Repressilator_ODE , X0 , 0.0 , 100000.0 , 0.1 , write_ODE_result );
+
+	// result matrix
+	integrate( Repressilator_ODE , X0 , 0.0 , 100000.0 , 1e-2 , write_ODE_result );
 
 }
 
