@@ -16,8 +16,8 @@ typedef boost::array< double , NSPECIES > state_type;
 
 // Parameter definition
 const double Ktl = 1e-2;
-const double Ktr = 1e-9;
-const double KR = 1e-8;
+const double Ktr = 1e-3;
+const double KR = 1e-2;
 const double nR = 2;
 const double dprot = 1e-3;
 const double dmRNA = 1e-2;
@@ -41,8 +41,8 @@ int S[NSPECIES*NREACTIONS] = {	1,  0,  0,  0,  0,  0,  0,     // Species 1
 								0,  0,  0,  0,  1,  0,  0,     // Species 5
 								0,  0,  0,  0,  0,  1,  0,     // Species 6
 								0,  0,  0,  0,  0,  0,  1,     // Species 7
-								0,  0,  0,  0,  0,  0,  1 };    // Species 8
-					// Reaction A   B   C   D   E   F   G
+								0,  0,  0,  0,  0,  0,  1 };   // Species 8
+								// Reaction A   B   C   D   E   F   G
 
 
 // const double sigma = 10.0;
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
 	state_type X0 = { 1e-6, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
 
 	// result matrix
-	integrate( Repressilator_ODE , X0 , 0.0 , 100000.0 , 0.1 , write_ODE_result );
+	integrate( Repressilator_ODE , X0 , 0.0 , 100000.0 , 1e-2 , write_ODE_result );
 
 }
 
