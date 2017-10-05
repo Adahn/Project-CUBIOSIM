@@ -75,12 +75,11 @@ int main(int argc, char **argv) {
 	// repressilator initialisation
 	Repressilator_ODE repr(n, dprot, dmRNA, Ktl, Ktr, KR, nR);
 
-	//double X0[8] = { 1e-6, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
+	// initial point
 	vector<double> Y0(2*(n+1),0.0);	Y0[0] = 1e-6;
 
-
 	// compute
-cout << "call integrate" << endl;
+cout << "call integrate...\t" << flush;
 	integrate( repr , Y0 , 0.0 , 100000.0 , 1e-2 , write_ODE_result );
 cout << "done" << endl;
 
