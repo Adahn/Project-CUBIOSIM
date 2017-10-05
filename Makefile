@@ -2,7 +2,7 @@ SRC=src/repressilator_n.cc
 OBJ=repressilator_n.o  
 
 CC=g++ #nvcc
-CFLAGS=-Wall 
+CFLAGS=-Wall -std=c++11
 
 INC=-I./inc 
 LIB=-L./lib 

@@ -45,7 +45,7 @@ chCommandLinePassback( int *p, char *s )
     *p = atoi( s );
 }
 
-static void
+/*static void
 chCommandLinePassback( char **p, char *s )
 {
     *p = s;
@@ -55,10 +55,10 @@ static void
 chCommandLinePassback( double *p, char *s )
 {
     *p = atof( s );
-}
+}*/
 
 //
-// Passes back an integer or string
+// Passes back an integer or double or string
 //
 template<typename T>
 static bool
