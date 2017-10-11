@@ -143,6 +143,7 @@ int main(int argc, char **argv) {
 	// double tfinal = 100000;
 	// double step = 0.1;
 
+
 	state_type X0 = { 1e-6, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
 
 	// result matrix
