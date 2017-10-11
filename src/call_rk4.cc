@@ -9,10 +9,9 @@ using namespace std;
 
 int main ( );
 void rk4_test ( );
-double rk4_test_f ( double t, double u );
-void rk4vec_test ( );
-double *rk4vec_test_f ( double t, int n, double u[] );
-
+void rk4_test_f ( double t, int dim, double* u, double* dudt );
+//void rk4vec_test ( );
+//double *rk4vec_test_f ( double t, int n, double u[] );
 //****************************************************************************80
 
 int main ( ) 
@@ -24,14 +23,15 @@ int main ( )
 //    MAIN is the main program for RK4_PRB.
 //
 {
+  /*
   timestamp ( );
   cout << "\n";
   cout << "RK4_PRB\n";
   cout << "  C++ version\n";
   cout << "  Test the RK4 library.\n";
-
+*/
   rk4_test ( );
-  rk4vec_test ( );
+  //rk4vec_test ( );
 //
 //  Terminate.
 //
@@ -39,7 +39,7 @@ int main ( )
   cout << "RK4_PRB\n";
   cout << "  Normal end of execution.\n";
   cout << "\n";
-  timestamp ( );
+  //timestamp ( );
 
   return 0;
 }
@@ -69,16 +69,17 @@ void rk4_test ( )
   double t0 = 0.0;
   double t1;
   double tmax = 12.0 * pi;
-  double u0 = 0.5;
-  double u1;
+
   int dim = 1;
+  double* u0 = new double(dim); u0[0] = 0.5;
+  double* u1;
 
   cout << "\n";
   cout << "RK4_TEST\n";
   cout << "  RK4 takes one Runge Kutta step for a scalar ODE.\n";
 
   cout << "\n";
-  cout << "          T          U[T]\n";
+  cout << "  T\tU[T]\n";
   cout << "\n";
 
   while ( true )
@@ -86,7 +87,7 @@ void rk4_test ( )
 //
 //  Print (T0,U0).
 //
-    cout << "  " << t0 << "  " << u0 << "\n";
+    cout << "  " << t0 << "\t" << u0[0] << "\n";
 //
 //  Stop if we've exceeded TMAX.
 //
@@ -99,18 +100,20 @@ void rk4_test ( )
 //  the solution U1 there.
 //
     t1 = t0 + dt;
-    u1 = rk4 ( t0, u0, dt, dim, rk4_test_f );
+    u1 = rk4( t0, u0, dt, dim, rk4_test_f );
 //
 //  Shift the data to prepare for another step.
 //
+    delete[] u0;
     t0 = t1;
     u0 = u1;
   }
+  delete[] u0;
   return;
 }
 //****************************************************************************80
 
-double rk4_test_f ( double t, int dim, double u )
+void rk4_test_f ( double t, int dim, double* u, double* dudt )
 
 //****************************************************************************80
 //
@@ -139,15 +142,14 @@ double rk4_test_f ( double t, int dim, double u )
 //    Output, double RK4_TEST_F, the value of the derivative, dU/dT.
 //
 {
-  double dudt;
-  
-  dudt = u * cos ( t );
-  
-  return dudt;
+  for(int i=0; i<dim; i++) {
+    dudt[i] = u[i] * cos ( t );
+  }
+  //return dudt;
 }  
 //****************************************************************************80
 
-void rk4vec_test ( )
+/*void rk4vec_test ( )
 
 //****************************************************************************80
 //
@@ -265,3 +267,4 @@ double *rk4vec_test_f ( double t, int n, double u[] )
  
   return uprime;
 }
+*/
