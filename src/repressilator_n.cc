@@ -35,12 +35,12 @@ using namespace boost::numeric::odeint;
 // Constants
 const static int DEFAULT_N = 3;
 
-const static double Ktl = 1e-2;
-const static double Ktr = 1e-3;
-const static double KR = 1e-2;
-const static double nR = 2;
-const static double dprot = 1e-3;
-const static double dmRNA = 1e-2;
+const static double Ktl = 1e-2;	// Translation rate
+const static double Ktr = 1e-3;	// Transcription rate
+const static double KR = 1e-2;  // Strength of repressors
+const static double nR = 2;	// Hills coefficient of repressors
+const static double dprot = 1e-3;	// Protein degradation rate
+const static double dmRNA = 1e-2;	// mRNA degradation rate
 
 
 // function prototypes
@@ -74,13 +74,14 @@ int main(int argc, char **argv) {
 
 	// repressilator initialisation
 	Repressilator_ODE repr(n, dprot, dmRNA, Ktl, Ktr, KR, nR);
+	//repr.check();
 
 	// initial point
-	vector<double> Y0(2*(n+1),0.0);	Y0[0] = 1e-6;
+	vector<double> Y0(2*(n+1),0.0);	Y0[0] = 1;
 
 	// compute
 cout << "call integrate...\t" << flush;
-	integrate( repr , Y0 , 0.0 , 100000.0 , 1e-2 , write_ODE_result );
+	integrate( repr , Y0 , 0.0 , 1000000.0 , 1e-2 , write_ODE_result );
 cout << "done" << endl;
 
 	return 0;

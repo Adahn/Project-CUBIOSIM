@@ -63,12 +63,24 @@ void Repressilator_ODE( int dim, double* Y, double* dYdt, double t ) {
 
 }
 
+void test( int dim, double* Y, double* dYdt, double t ) {
+	int i;
+	for (i = 0; i < NSPECIES/2; ++i) {
+		dYdt[i] = 1;
+	}
+
+	for(; i < NSPECIES; ++i) {
+		dYdt[i] = 1-Y[i];
+	}
+
+}
+
 void write_ODE_result(int dim, double Y[], double t ) {
 	ofstream file;
 	file.open ("bin/Result.csv",ios::app); // write at the end of file
 	
-	file << Y[0];
-	for(int i=1; i<NSPECIES; i++) {
+	file << t;
+	for(int i=0; i<NSPECIES; i++) {
 		file << ";" << Y[i];	
 	}
 	file << "\n";
@@ -79,10 +91,10 @@ void write_ODE_result(int dim, double Y[], double t ) {
 
 int main(int argc, char **argv) {
 	
-	double X0[] = { 1e-6, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
+	double X0[] = { 1, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
 
 	// result matrix
-	rk4_wrapper( NSPECIES, Repressilator_ODE , X0 , 0.0 , 1000.0 , 1e-2,
+	rk4_wrapper( NSPECIES, Repressilator_ODE , X0 , 0.0 , 100000 , 1e-2,
 			write_ODE_result );
 
 }

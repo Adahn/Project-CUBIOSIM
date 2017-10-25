@@ -59,9 +59,10 @@ class Repressilator_ODE
 			for( int i=0; i<_n+1; i++ ) {
 				R[i] = _Ktl*Y[i+_n+1];
 			}
-			for( int i=0; i<_n+1; i++ ) {
-				R[i+_n+1] = _Ktr/(1 + pow(Y[i]/_KR, _nR));
+			for( int i=1; i<_n; i++ ) {
+				R[i+_n] = _Ktr/(1 + pow(Y[i]/_KR, _nR));
 			}
+			R[2*_n] = _Ktr/(1 + pow(Y[0]/_KR, _nR));
 
 			// Model: dYdt = S*R - d*Y
 			for( int i=0; i<_nspec; i++) {
@@ -75,8 +76,8 @@ class Repressilator_ODE
 		}
 
 
-/*		void check() {
-			for(int i=0; i<i_nspec; i++) {
+		/*void check() {
+			for(int i=0; i<_nspec; i++) {
 				cout << decay[i] << "\t";
 			}
 			cout << endl;

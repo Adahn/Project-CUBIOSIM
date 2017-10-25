@@ -14,15 +14,17 @@ void rk4_wrapper(int dim, void f(int dim, double u[], double dudt[], double t),
 	for(int i=0; i<dim; i++) {
 		u0[i] = initial_u[i];
 	}
+	observer(dim, u0, t0);
 
 	while(t_max > t0) {
 		u1 = rk4(dim, t0, u0, step, f );
-		if( observer!=NULL && (c%100)==0 ) {
-			observer(dim, u1, t0);
-		}
 
 		t0 += step;	c += 1;
 		delete[] u0;	u0 = u1;
+
+		if( observer!=NULL && (c%10000)==0 ) {
+			observer(dim, u0, t0);
+		}
 	}
 	
 	delete[] u0;
@@ -56,7 +58,7 @@ double* rk4(int dim, double t0, double u0[], double dt,
 	for (i=0; i<dim; i++) {
 		u1[i] = u0[i] + dt*f0[i]/2.0;
 	}
-	f(dim, u1, f1, t0);
+	f(dim, u1, f1, t1);
 
 	// k3
 	for ( i = 0; i < dim; i++ ) {

@@ -21,7 +21,7 @@ const double dprot = 1e-3;
 const double dmRNA = 1e-2;
 
 // decay vector
-const double decay[NSPECIES] = { dprot,	// Species 1
+const double _decay[NSPECIES] = { dprot,	// Species 1
 						  dprot,	// Species 2 
 						  dprot,	// Species 3
 						  dprot,	// Species 4
@@ -33,14 +33,14 @@ const double decay[NSPECIES] = { dprot,	// Species 1
 
 // Stochiometric matrix
 int S[NSPECIES*NREACTIONS] = {	1,  0,  0,  0,  0,  0,  0,     // Species 1
-				0,  1,  0,  0,  0,  0,  0,     // Species 2
-				0,  0,  1,  0,  0,  0,  0,     // Species 3
-				0,  0,  0,  1,  0,  0,  0,     // Species 4
-				0,  0,  0,  0,  1,  0,  0,     // Species 5
-				0,  0,  0,  0,  0,  1,  0,     // Species 6
-				0,  0,  0,  0,  0,  0,  1,     // Species 7
-				0,  0,  0,  0,  0,  0,  1 };   // Species 8
-		// Reaction     A   B   C   D   E   F   G
+								0,  1,  0,  0,  0,  0,  0,     // Species 2
+								0,  0,  1,  0,  0,  0,  0,     // Species 3
+								0,  0,  0,  1,  0,  0,  0,     // Species 4
+								0,  0,  0,  0,  1,  0,  0,     // Species 5
+								0,  0,  0,  0,  0,  1,  0,     // Species 6
+								0,  0,  0,  0,  0,  0,  1,     // Species 7
+								0,  0,  0,  0,  0,  0,  1 };   // Species 8
+				// Reaction     A   B   C   D   E   F   G
 
 void Repressilator_ODE( const state_type &Y, state_type &dYdt, const double t ) {
 
@@ -63,7 +63,7 @@ void Repressilator_ODE( const state_type &Y, state_type &dYdt, const double t ) 
 
 		}
 	
-		dYdt[i] -= decay[i]*Y[i];
+		dYdt[i] -= _decay[i]*Y[i];
 	}
 
 }
@@ -72,10 +72,10 @@ void Repressilator_ODE( const state_type &Y, state_type &dYdt, const double t ) 
 void write_ODE_result( const state_type &Y, const double t )
 {
 	ofstream file;
-	file.open ("bin/Result.csv",ios::app); // write at the end of file
+	file.open ("bin/Result_odeint.csv",ios::app); // write at the end of file
 	
-	file << Y[0];
-	for(int i=1; i<NSPECIES; i++) {
+	file << t;
+	for(int i=0; i<NSPECIES; i++) {
 		file << ";" << Y[i];	
 	}
 	file << "\n";
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 	// double step = 0.1;
 
 
-	state_type X0 = { 1e-6, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
+	state_type X0 = { 1, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
 
 	// result matrix
 	integrate( Repressilator_ODE , X0 , 0.0 , 100000.0 , 1e-2 , write_ODE_result );
