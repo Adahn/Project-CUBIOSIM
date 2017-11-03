@@ -16,6 +16,7 @@ void rk4_wrapper(int dim, void f(int dim, double u[], double dudt[], double t),
 	}
 	observer(dim, u0, t0);
 
+	// loop over time
 	while(t_max > t0) {
 		u1 = rk4(dim, t0, u0, step, f );
 

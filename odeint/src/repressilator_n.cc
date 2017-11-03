@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 
 	// compute
 cout << "call integrate...\t" << flush;
-	integrate( repr , Y0 , 0.0 , 1000000.0 , 1e-2 , write_ODE_result );
+	integrate( repr , Y0 , 0.0 , 100000.0 , 1e-2 , write_ODE_result );
 cout << "done" << endl;
 
 	return 0;
