@@ -92,10 +92,17 @@ void write_ODE_result(int dim, double Y[], double t ) {
 int main(int argc, char **argv) {
 	
 	double X0[] = { 1, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
+	double eps = 1e-8;
 
-	// result matrix
-	rk4_wrapper( NSPECIES, Repressilator_ODE , X0 , 0.0 , 100000 , 1e-2,
-			write_ODE_result );
+	// Runge-Kutta method
+	//rk4_wrapper( NSPECIES, Repressilator_ODE , X0 , 0.0 , 100000 , 1e-2,
+	//		write_ODE_result );
+
+	// adaptive step size Runge-Kutta-Fehlberg method
+	rk45_wrapper( NSPECIES, Repressilator_ODE , X0 , 0.0 , 100000 , 1e-2,
+			write_ODE_result, eps );
+
+
 
 }
 
