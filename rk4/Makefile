@@ -1,5 +1,5 @@
-SRC=src/runge_kutta.cc src/repr_rngkutta.cc
-OBJ=runge_kutta.o repr_rngkutta.o
+SRC=src/repr_rngkutta.cc
+OBJ=repr_rngkutta.o
 
 CC=g++ #nvcc
 CFLAGS=-Wall -std=c++11
