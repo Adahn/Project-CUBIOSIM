@@ -1,106 +1,102 @@
-#include <iostream>
-#include <fstream>
-#include <cmath>
+/***************
 
+Project cuBIOSIM
+Polytech Paris UPMC
+
+authors:
+	Liliane Kissita
+	Elise Grojean
+	Adrian Ahne
+	Lucas Gaudelet
+
+****************/
+
+// standard C++
+#include <fstream>
+#include <iostream>
+#include <vector>
+
+// repressilator class
+#include <repressilator.hh>
 #include <runge_kutta.hh>
 
-#define NSPECIES 8
-#define NREACTIONS 7
+// command line parser and timer
+#include <chCommandLine.h>
+#include <chTimer.hpp>
 
-//using namespace std;
+// namespaces
+using namespace std;
 
-class Repressilator_ODE {
+// Constants
+const static int DEFAULT_N = 3;
 
-  private:
-	// Parameter definition
-	const double Ktl = 1e-2;
-	const double Ktr = 1e-3;
-	const double KR = 1e-2;
-	const double nR = 2;
-	const double dprot = 1e-3;
-	const double dmRNA = 1e-2;
+const static double Ktl = 1e-2;	// Translation rate
+const static double Ktr = 1e-3;	// Transcription rate
+const static double KR = 1e-2;  // Strength of repressors
+const static double nR = 2;		// Hills coefficient of repressors
+const static double dprot = 1e-3;	// Protein degradation rate
+const static double dmRNA = 1e-2;	// mRNA degradation rate
 
-	// decay vector
-	const double decay_v[NSPECIES] =
-			{ dprot,	// Species 1
-			  dprot,	// Species 2 
-			  dprot,	// Species 3
-			  dprot,	// Species 4
-			  dmRNA,	// Species 5
-			  dmRNA,	// Species 6
-			  dmRNA,	// Species 7
-			  dmRNA };	// Species 8
 
-	// Stochiometric matrix
-	int S[NSPECIES*NREACTIONS] =
-		{	1,  0,  0,  0,  0,  0,  0,     // Species 1
-			0,  1,  0,  0,  0,  0,  0,     // Species 2
-			0,  0,  1,  0,  0,  0,  0,     // Species 3
-			0,  0,  0,  1,  0,  0,  0,     // Species 4
-			0,  0,  0,  0,  1,  0,  0,     // Species 5
-			0,  0,  0,  0,  0,  1,  0,     // Species 6
-			0,  0,  0,  0,  0,  0,  1,     // Species 7
-			0,  0,  0,  0,  0,  0,  1 };   // Species 8
-	// Reaction     A   B   C   D   E   F   G
+// function prototypes
+void print_help(char* argv);
 
-  public:
-	Repressilator_ODE() {}
-	~Repressilator_ODE() {}
-
-	void operator()( int dim, double* Y, double* dYdt, double t ) {
-	
-		// Reaction Rates
-		double R[NREACTIONS] = {
-			Ktl*Y[4],			// Reaction A
-			Ktl*Y[5],			// Reaction B
-			Ktl*Y[6] ,			// Reaction C
-			Ktl*Y[7] ,			// Reaction D
-			Ktr/(1 + pow(Y[1]/KR, nR)) ,	// Reaction E
-			Ktr/(1 + pow(Y[2]/KR, nR)) ,	// Reaction F
-			Ktr/(1 + pow(Y[0]/KR, nR)) };	// Reaction G
-
-		// Model: dYdt = S * R - d * Y
-		for (int i = 0; i < NSPECIES; ++i) {
-			dYdt[i] = 0;
-			for (int j = 0; j < NREACTIONS; ++j) {
-				dYdt[i] += S[j+i*NREACTIONS] * R[j];
-			}
-			dYdt[i] -= decay_v[i]*Y[i];
-		}
-	}
-
-	void observer(int dim, double Y[], double t ) {
-		std::ofstream file;
-		file.open ("bin/Result.csv",std::ios::app);
-	
-		file << t;
-		for(int i=0; i<NSPECIES; i++) {
-			file << ";" << Y[i];	
-		}
-		file << "\n";
-	
-		file.close();
-	}
-
-};
-
+// main
 int main(int argc, char **argv) {
+
+	// print help
+	bool      help = chCommandLineGetBool("h", argc, argv);
+	if(!help) help = chCommandLineGetBool("help", argc, argv);
+	if(help)  print_help(argv[0]);
+
+	// repressilator size
+	int n = -1;
+	chCommandLineGet<int>(&n, "n", argc, argv);
+	chCommandLineGet<int>(&n, "repressor-number", argc, argv);
+	n = (n!=-1)? n:DEFAULT_N;
 	
-	Repressilator_ODE repr;
-	double X0[] = { 1, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
+	if( n%2==0 ) {
+		cout << "n must be an odd interger" << endl;
+		exit(-1);
+	}
+	else {
+		cout << "repressors : " << n 
+			<< "\tspecies: " << 2*(n+1)
+			<< "\treactions: " << 2*n+1 << endl;
+	}
 
-	// result matrix
-	std::cout << "Runge Kutta Fehlberg Order 4...\t" << std::flush;
-	rk4_wrapper<double, Repressilator_ODE>
-		( NSPECIES, repr, X0 , 0.0 , 10000 , 1e-2);
-	std::cout << "done" << std::endl;
+	// repressilator initialisation
+	Repressilator_ODE repr_rk4(n, dprot, dmRNA, Ktl, Ktr, KR, nR, "bin/result_rk4.csv");
+	Repressilator_ODE repr_rk45(n, dprot, dmRNA, Ktl, Ktr, KR, nR, "bin/result_rk45.csv");
 
+	// initial point
+	double* Y0 = (double*)calloc(2*(n+1), sizeof(double));	Y0[0] = 1;
 
-	std::cout << "Runge Kutta Fehlberg Order 45...\t" << std::flush;
-	rk45_wrapper<double, Repressilator_ODE>
-		( NSPECIES, repr, X0 , 0.0 , 10000 , 1e-2, 1e-6);
-		
-	std::cout << "done" << std::endl;
+	// compute
+	cout << "call rk4...\t" << flush;
+	rk4_wrapper<double, Repressilator_ODE&>
+			( 2*(n+1), repr_rk4, Y0 , 0.0 , 10000 , 1e-2);
+	cout << "done" << endl;
+
+	cout << "call rk45...\t" << flush;
+	rk45_wrapper<double, Repressilator_ODE&>
+			( 2*(n+1), repr_rk45, Y0 , 0.0 , 10000 , 1e-2, 1e-6);
+	cout << "done" << endl;
+
+	free(Y0);
+
+	return 0;
 
 }
 
+void print_help( char* argv) {
+
+	cout	<< "Help:" << endl
+		<< "  Usage: " << endl
+		<< "  " << argv << " [options][-n <repressor-number> ]" << endl
+		<< endl
+		<< "  -n|--repressor-number" << endl
+		<< "      number of repressors to be used, must be an odd integer" << endl
+		<< endl;
+
+}

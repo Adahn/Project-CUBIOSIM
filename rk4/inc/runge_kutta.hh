@@ -71,9 +71,10 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 
 	// loop over time
 	while(t_max > t0) {
+		//std::cout << "ping" << std::endl;
 		u1 = rk4<state_type, system>(dim, f, t0, u0, step);
 
-		t0 += step;	c += 1;
+		t0 += step;		c += 1;
 		delete[] u0;	u0 = u1;
 
 		if( (c%10000)==0 ) {

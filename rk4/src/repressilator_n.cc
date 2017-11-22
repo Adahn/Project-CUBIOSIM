@@ -89,20 +89,7 @@ cout << "done" << endl;
 }
 
 
-// utility functions
-void write_ODE_result( const vector<double> &Y, const double t )
-{
-	ofstream file;
-	file.open ("bin/Result.csv",ios::app); // write at the end of file
-	
-	file << t;
-	for( double d : Y) {
-		file << ";" << d;	
-	}
-	file << "\n";
-	
-	file.close();
-}
+
 
 void print_help( char* argv) {
 

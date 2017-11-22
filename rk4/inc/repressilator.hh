@@ -1,5 +1,8 @@
 #pragma once
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <cmath>
 
 using namespace std;
 
@@ -13,8 +16,9 @@ class Repressilator_ODE
 		int _nspec;
 
 		// system parameters
-		vector<double> decay;
-		vector<int> S;
+		double* R;
+		double* decay;
+		int* S;
 
 		// Rate parameters
 		double _Ktl;
@@ -22,22 +26,19 @@ class Repressilator_ODE
 		double _KR;
 		double _nR;
 		
-		vector<double> R;
+		// other variables
+		string _filename;
 	
 	public:	
 
-		Repressilator_ODE(int n, double dprot, double dmRNA, double Ktl, double Ktr, double KR, double nR):
-			_n(n),
-			_nreac( 2*n+1 ),
-			_nspec( 2*(n+1) ),
-			_Ktl(Ktl),
-			_Ktr(Ktr),
-			_KR(KR),
-			_nR(nR)
+		Repressilator_ODE(int n, double dprot, double dmRNA, double Ktl, double Ktr, double KR, double nR, string filename):
+			_n(n), _nreac( 2*n+1 ), _nspec( 2*(n+1) ),
+			_Ktl(Ktl), _Ktr(Ktr), _KR(KR), _nR(nR),
+			_filename(filename)
 		{
-			S = vector<int>(_nspec * _nreac);
-			R = vector<double>(_nspec);
-			decay = vector<double>(_nspec);
+			S = (int*)calloc( _nspec * _nreac, sizeof(int) );
+			R = (double*)calloc(_nspec, sizeof(double));
+			decay = (double*)calloc(_nspec, sizeof(double));
 	
 			int i,j;
 			for( i=0; i<_n+1; i++ ) {
@@ -52,8 +53,7 @@ class Repressilator_ODE
 			S[j *_nreac+ j-1] = 1;		// S last line is the same as the previous one
 		}
 
-
-		void operator()( const vector<double>& Y, vector<double>& dYdt, const double t ) {
+		void operator()( const int dim, double* Y, double* dYdt, const double t ) {
 
 			// Reaction Rates
 			for( int i=0; i<_n+1; i++ ) {
@@ -75,6 +75,20 @@ class Repressilator_ODE
 
 		}
 
+		// utility functions
+		void observer( const int dim, double* Y, const double t )
+		{
+			ofstream file;
+			file.open(_filename,ios::app); // write at the end of file
+	
+			file << t;
+			for( int i=0; i<dim; i++) {
+				file << ";" << Y[i];	
+			}
+			file << "\n";
+	
+			file.close();
+		}
 
 		/*void check() {
 			for(int i=0; i<_nspec; i++) {
@@ -89,4 +103,9 @@ class Repressilator_ODE
 				cout << endl;
 			}
 		}*/
+		
+	~Repressilator_ODE() {
+		free(S);	free(R);	free(decay);
+	}
 };
+
