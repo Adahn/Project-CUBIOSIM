@@ -90,8 +90,17 @@ int main(int argc, char **argv) {
 	double X0[] = { 1, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
 
 	// result matrix
+	std::cout << "Runge Kutta Fehlberg Order 4...\t" << std::flush;
 	rk4_wrapper<double, Repressilator_ODE>
 		( NSPECIES, repr, X0 , 0.0 , 10000 , 1e-2);
+	std::cout << "done" << std::endl;
+
+
+	std::cout << "Runge Kutta Fehlberg Order 45...\t" << std::flush;
+	rk45_wrapper<double, Repressilator_ODE>
+		( NSPECIES, repr, X0 , 0.0 , 10000 , 1e-2, 1e-6);
+		
+	std::cout << "done" << std::endl;
 
 }
 
