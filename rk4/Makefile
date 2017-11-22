@@ -9,12 +9,12 @@ LIB=-L./lib
 LDFLAGS=$(INC) $(LIB)
 
 .PHONY: all
-all: ./bin/repr_rk4
+all: ./bin/repr_rk45
 
 %.o: src/%.cc
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
-./bin/repr_rk4: $(OBJ)
+./bin/repr_rk45: $(OBJ)
 	$(CC) $(LDFLAGS) $(CFLAGS)  -o $@ $^
 
 

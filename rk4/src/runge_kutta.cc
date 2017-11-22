@@ -94,7 +94,6 @@ double* rk4(int dim, double t0, double u0[], double dt,
 	delete[] u2;
 	delete[] u3;
 
-
 	return u;
 }
 
@@ -107,8 +106,8 @@ void rk45_wrapper(int dim, void f(int dim, double u[], double dudt[], double t),
 	double* u0 = new double[dim];
 	double* u1;
 	int c = 0;
-	double* R;
-	double* delta;
+	double R;
+	double delta;
 
 	cout << "Runge Kutta Fehlberg Order 45..." << flush;
 
@@ -122,20 +121,21 @@ void rk45_wrapper(int dim, void f(int dim, double u[], double dudt[], double t),
 
 	// loop over time
 	while(t_max > t0) {
-		u1 = rk45(dim, t0, u0, step, f, eps, R, delta );
+		u1 = rk45(dim, t0, u0, step, f, eps, &R, &delta );
 
-		if ( *R <= eps )
+		if ( R <= eps )
 		{
 			t0 += step;	
 			delete[] u0;
 			u0 = u1; 
 			c += 1;
-			step = *delta*step;
+			step = delta*step;
 		}
 		else
 		{
-			step = *delta*step;
+			step = delta*step;
 		}
+
 
 		if( observer!=NULL && (c%10000)==0 ) {
 			observer(dim, u0, t0);
@@ -220,6 +220,7 @@ double* rk45(int dim, double t0, double u0[], double dt,
 	}
 
 	// calculate |w1 - w2| ; norm L2
+	*R = 0;
 	for (int i = 0; i < dim; ++i)
 	{
 		*R += (w1[i] - w2[i])*(w1[i] - w2[i]);
@@ -227,7 +228,9 @@ double* rk45(int dim, double t0, double u0[], double dt,
 	
 	*R = 1.0/dt * sqrt(*R);
 
-	delta = 0.84* pow(eps/R, 1.0/4.0); // step
+	*delta = 0.84* pow(eps/(*R), 1.0/4.0); // step
+
+
 
 	//  Free memory.
 	delete[] f0;

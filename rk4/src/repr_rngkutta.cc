@@ -2,6 +2,8 @@
 #include <fstream>
 #include <cmath>
 
+#include <chTimer.hpp>
+
 #include <runge_kutta.hh>
 
 #define NSPECIES 8
@@ -75,9 +77,22 @@ void test( int dim, double* Y, double* dYdt, double t ) {
 
 }
 
-void write_ODE_result(int dim, double Y[], double t ) {
+void write_ODE_result_rk4(int dim, double Y[], double t ) {
 	ofstream file;
-	file.open ("bin/Result.csv",ios::app); // write at the end of file
+	file.open ("bin/result_rk4.csv",ios::app); // write at the end of file
+	
+	file << t;
+	for(int i=0; i<NSPECIES; i++) {
+		file << ";" << Y[i];	
+	}
+	file << "\n";
+	
+	file.close();
+}
+
+void write_ODE_result_rk45(int dim, double Y[], double t ) {
+	ofstream file;
+	file.open ("bin/result_rk45.csv",ios::app); // write at the end of file
 	
 	file << t;
 	for(int i=0; i<NSPECIES; i++) {
@@ -91,18 +106,24 @@ void write_ODE_result(int dim, double Y[], double t ) {
 
 int main(int argc, char **argv) {
 	
+	ChTimer rk4, rk45;
+
 	double X0[] = { 1, 0, 0, 0, 0, 0, 0, 0 }; // initial condition
-	double eps = 1e-8;
+	double eps = 1e-10;
 
 	// Runge-Kutta method
-	//rk4_wrapper( NSPECIES, Repressilator_ODE , X0 , 0.0 , 100000 , 1e-2,
-	//		write_ODE_result );
-
+	/*rk4.start();
+	rk4_wrapper( NSPECIES, Repressilator_ODE , X0 , 0.0 , 100000 , 1e-2,
+			write_ODE_result_rk4 );
+	rk4.stop();*/
+			
 	// adaptive step size Runge-Kutta-Fehlberg method
+	rk45.start();
 	rk45_wrapper( NSPECIES, Repressilator_ODE , X0 , 0.0 , 100000 , 1e-2,
-			write_ODE_result, eps );
+			write_ODE_result_rk45, eps );
+	rk45.stop();
 
-
-
+	cout << "rk4:\t" << rk4.getTime() << "s" << endl
+		<< "rk45:\t" << rk45.getTime() << "s" << endl;
 }
 
