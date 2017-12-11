@@ -9,12 +9,12 @@ LIB=-L./lib
 LDFLAGS=$(INC) $(LIB)
 
 .PHONY: all
-all: ./bin/repressilator
+all: ./bin/repressilator_n
 
 %.o: src/%.cc
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
-./bin/repressilator: $(OBJ)
+./bin/repressilator_n: $(OBJ)
 	$(CC) $(LDFLAGS) $(CFLAGS)  -o $@ $^
 
 
@@ -24,5 +24,5 @@ clean:
 	rm -f bin/*
 
 exec:
-	time ./bin/repressilator
+	time ./bin/repressilator_n
 
