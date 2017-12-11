@@ -24,5 +24,5 @@ clean:
 	rm -f bin/*
 
 exec:
-	time ./bin/repressilator
+	time ./bin/repr_rk4
 

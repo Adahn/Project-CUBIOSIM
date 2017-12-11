@@ -36,9 +36,9 @@ class Repressilator_ODE
 			_Ktl(Ktl), _Ktr(Ktr), _KR(KR), _nR(nR),
 			_filename(filename)
 		{
-			S = (int*)calloc( _nspec * _nreac, sizeof(int) );
-			R = (double*)calloc(_nspec, sizeof(double));
-			decay = (double*)calloc(_nspec, sizeof(double));
+			S = new int[_nspec * _nreac]; //(int*)calloc( _nspec * _nreac, sizeof(int) );
+			R = new double[_nspec]; //(double*)calloc(_nspec, sizeof(double));
+			decay = new double[_nspec]; //(double*)calloc(_nspec, sizeof(double));
 	
 			int i,j;
 			for( i=0; i<_n+1; i++ ) {
@@ -105,7 +105,8 @@ class Repressilator_ODE
 		}*/
 		
 	~Repressilator_ODE() {
-		free(S);	free(R);	free(decay);
+		//free(S);	free(R);	free(decay);
+		delete[] S;	delete[] R;	delete[] decay;
 	}
 };
 
