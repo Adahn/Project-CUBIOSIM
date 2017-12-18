@@ -3,56 +3,82 @@
 template<class state_type, class system>
 state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 
-	state_type* f0 = new state_type[dim];
-	state_type* f1 = new state_type[dim];
-	state_type* f2 = new state_type[dim];
-	state_type* f3 = new state_type[dim];
-
-	state_type* u1 = new state_type[dim];
-	state_type* u2 = new state_type[dim];
-	state_type* u3 = new state_type[dim];
-
+	// Gpu memory alloc and parameters
+	state_type* state_matrix, *g_u;
+	cudaMalloc(&g_u, sizeof(dim));
+	cudaMalloc(&state_matrix, 5*dim*sizeof(state_type));
+	
+	double* g_coefs;
+	cudaMalloc(&g_coefs, 5*sizeof(double));
+	
+	int thread_per_block = 1024;
+	int blockSize = ceil(dim/thread_per_block);
+	
+	// CPU memory alloc
+	state_type *f0 = new state_type[dim];
+	state_type *f1 = new state_type[dim];
+	state_type *f2 = new state_type[dim];
+	state_type *f3 = new state_type[dim];
+	
 	state_type* u = new state_type[dim];
-
+	state_type* u_sol = new state_type[dim];
+	
 	int i;
 	double t1 = t0 + dt/2.0;
 	double t2 = t0 + dt/2.0;
 	double t3 = t0 + dt;
+	double coefs[5];
 
 	//  Get four sample values of the derivative.
 	// k1
 	f(dim, u0, f0, t0);
-
+	
 	// k2
-	for (i=0; i<dim; i++) {
-		u1[i] = u0[i] + dt*f0[i]/2.0;
-	}
-	f(dim, u1, f1, t1);
+	coefs[0] = 1;	coefs[1] = dt/2;
+	cudaMemcpy(g_coefs, coefs, 2*sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(state_matrix+dim, f0, dim*sizeof(state_type), cudaMemcpyHostToDevice);
+	sumk<<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 2);
+	cudaDeviceSynchronize();
+	cudaMemcpy(u, g_u, dim*sizeof(state_type));
+	f(dim, u, f1, t1);
 
 	// k3
-	for ( i = 0; i < dim; i++ ) {
-		u2[i] = u0[i] + dt*f1[i]/2.0;
-	}
-	f(dim, u2, f2, t2);
+	coefs[0] = 1;	coefs[1] = 0;	coefs[2] = dt/2;
+	cudaMemcpy(g_coefs, coefs, 3*sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(state_matrix+2*dim, f1, dim*sizeof(state_type), cudaMemcpyHostToDevice);
+	sumk<<<blockSize, 1024>>>(dim, g_u, state_matrix, g_coefs, 3);
+	cudaDeviceSynchronize();
+	cudaMemcpy(u, g_u, dim*sizeof(state_type));
+	f(dim, u, f2, t2);
 
 	// k4
-	for(i=0; i<dim; i++) {
-		u3[i] = u0[i] + dt*f2[i];
-	}
-	f(dim, u3, f3, t3);
+	coefs[0] = 1;	coefs[1] = 0;
+	coefs[2] = 0;	coefs[3] = 1;
+	cudaMemcpy(g_coefs, coefs, 4*sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(state_matrix+3*dim, f2, dim*sizeof(state_type), cudaMemcpyHostToDevice);
+	sumk<<<blockSize, 1024>>>(dim, g_u, state_matrix, g_coefs, 4);
+	cudaDeviceSynchronize();
+	cudaMemcpy(u, g_u, dim*sizeof(state_type));
+	f(dim, u, f3, t3);
 
 	//  Combine them to estimate the solution.
-	for ( i = 0; i < dim; i++ ) {
-		u[i] = u0[i] + dt*(f0[i] + 2.0*f1[i] + 2.0*f2[i] + f3[i])/6.0;
-	}
+	coefs[0] = 1;		coefs[1] = dt/6;	coefs[2] = dt/3;	
+	coefs[3] = dt/3;	coefs[4] = dt/6;
+	cudaMemcpy(g_coefs, coefs, 5*sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(state_matrix+4*dim, f3, dim*sizeof(state_type), cudaMemcpyHostToDevice);
+	sumk<<<blockSize, 1024>>>(dim, g_u, state_matrix, g_coefs, 5);
+	cudaDeviceSynchronize();
+	cudaMemcpy(u_sol, g_u, dim*sizeof(state_type));
 
 	//  Free memory.
 	delete[] f0;	delete[] f1;
 	delete[] f2;	delete[] f3;
-	delete[] u1;	delete[] u2;
-	delete[] u3;
+	delete[] u;		delete[] u_sol;
+	cudaFree(g_u);	cudaFree(state_matrix);
+	cudaFree(g_coef);
+	
+	return u_sol;
 
-	return u;
 }
 
 template<class state_type, class system>
@@ -85,10 +111,54 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 	delete[] u0;
 }
 
+/*template<class state_type, class system>
+void rk4_wrapper(int dim, system f, state_type* initial_u,
+        double t0, double t_max, double step) {
+
+	// the state matrices cointain u0 and the intermediate terms :
+    // u0
+    // f0
+    // ...
+    // f3
+    
+	state_type* state_matrix0;
+	state_type* u = new state_type[dim];
+	
+	int offset = 5*dim*sizeof(state_type);
+	cudaMalloc(&state_matrix0, 2*offset);
+	
+	cudaMemcpy(state_matrix0, initial_u, dim*sizeof(state_type));
+	f.observer(dim, initial_u, t0);
+	
+	int c = 0;
+
+	// loop over time
+	while(t_max > t0) {
+		//u1 = rk4<state_type, system>(dim, f, t0, u0, step);
+		
+		// primitive call
+		rk4<state_type, system>
+			(dim, f, t0, state_matrix+((c+1)%2)*offset, 
+			state_matrix+(c%2)*offset, step);
+		
+		if( (c%10000)==0 ) {
+			// copy D2H and write to file
+			cudaMemcpy(u, state_matrix+((c+1)%2), dim*sizeof(state_type));
+			f.observer(dim, u, t0);
+		}
+
+		t0 += step;		c += 1;
+		
+	}
+	
+	cudaFree(state_matrix1);
+	delete[] u;
+}*/
+
 
 /* adaptive runge-kutta method of order 4 and 5
 https://math.okstate.edu/people/yqwang/teaching/math4513_fall11/Notes/rungekutta.pdf
-*/
+*//*
 template<class state_type, class system>
 state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	double eps, state_type *R, double *delta) {
@@ -176,28 +246,35 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	delete[] u5;	delete[] w2;
 
 	return w1;
-}
+}*/
 
-/* wrapps runge kutta Fehlberg method */
+/* wrapps runge kutta Fehlberg method *//*
 template<class state_type, class system>
 void rk45_wrapper(int dim, system f, state_type* initial_u,
         double t0, double t_max, double step, double eps) {
-        
-	state_type* u0 = new state_type[dim];
-	state_type* u1;
+    
+    // the state matrices cointain u0 and the intermediate terms :
+    // u0
+    // f0
+    // ...
+    // f5
+    
+	state_type* state_matrix0;
+	state_type* state_matrix1;
+	
+	cudaMalloc(&u0, 7*dim*sizeof(state_type));
+	cudaMemcpy(u0, initial_u, dim*sizeof(state_type));
+	f.observer(dim, initial_u, t0);
 	
 	state_type R;
 	double delta;
 
-	// copy initial point to avoid erasing it
-	for(int i=0; i<dim; i++) {
-		u0[i] = initial_u[i];
-	}
-	f.observer(dim, u0, t0);
-
 	// loop over time
 	while(t_max > t0) {
+		// kernel call + syncrhonise
 		u1 = rk45<state_type, system>(dim, f, t0, u0, step, eps, &R, &delta );
+
+		// get data back and write to file
 
 		if ( R <= eps ) {
 			t0 += step;		step=delta*step;
@@ -211,4 +288,4 @@ void rk45_wrapper(int dim, system f, state_type* initial_u,
 	}
 	
 	delete[] u0;
-}
+}*/

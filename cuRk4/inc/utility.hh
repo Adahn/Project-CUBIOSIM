@@ -13,7 +13,6 @@ __global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, in
 		if(index<n) {
 			out[index] = 0;
 			for(int j=0; j<n_v; j++) {
-printf("[%d:%d] j:%d id:%d %d+=%d*%d\n", blockIdx.x, threadIdx.x, j, index, out[index], coef[j], v[j*n+index]);
 				out[index]+=coef[j]*v[j*n+index];
 			}
 		}

@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
 	// repressilator initialisation
 	Repressilator_ODE repr_rk4(n, dprot, dmRNA, Ktl, Ktr, KR, nR, "bin/result_rk4.csv");
-	Repressilator_ODE repr_rk45(n, dprot, dmRNA, Ktl, Ktr, KR, nR, "bin/result_rk45.csv");
+	//Repressilator_ODE repr_rk45(n, dprot, dmRNA, Ktl, Ktr, KR, nR, "bin/result_rk45.csv");
 
 	// initial point
 	double* Y0 = (double*)calloc(2*(n+1), sizeof(double));	Y0[0] = 1;
@@ -78,11 +78,13 @@ int main(int argc, char **argv) {
 			( 2*(n+1), repr_rk4, Y0 , 0.0 , 10000 , 1e-2);
 	cout << "done" << endl;
 
+	/*
 	cout << "call rk45...\t" << flush;
 	rk45_wrapper<double, Repressilator_ODE&>
 			( 2*(n+1), repr_rk45, Y0 , 0.0 , 10000 , 1e-2, 1e-6);
 	cout << "done" << endl;
-
+	*/
+	
 	free(Y0);
 
 	return 0;
