@@ -1,20 +1,23 @@
-SRC=src/repr_rngkutta.cc
+SRC=src/repr_rngkutta.cu
 OBJ=repr_rngkutta.o
 
 CC=nvcc
-CFLAGS=-Wall -std=c++11 -arch=compute_35
+CFLAGS=-std=c++11 -arch=compute_35 -g -G -lineinfo
 
 INC=-I./inc 
 LIB=-L./lib 
 LDFLAGS=$(INC) $(LIB)
 
 .PHONY: all
-all: ./bin/repr_rk45
+all: ./bin/repr_rk4
 
-%.o: src/%.cc
+#%.o: src/%.cu
+#	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
+
+repr_rngkutta.o: src/repr_rngkutta.cu inc/runge_kutta.hh inc/utility.hh
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
-./bin/repr_rk45: $(OBJ)
+./bin/repr_rk4: $(OBJ)
 	$(CC) $(LDFLAGS) $(CFLAGS)  -o $@ $^
 
 
@@ -24,5 +27,5 @@ clean:
 	rm -f bin/*
 
 exec:
-	time ./bin/repr_rk45
+	time ./bin/repr_rk4
 

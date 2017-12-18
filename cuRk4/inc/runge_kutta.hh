@@ -1,18 +1,33 @@
 #include <iostream>
+#include <stdio.h>
+#include <cuda_runtime.h>
+#include <cuda.h>
+#include <utility.hh>
+
+#define gpuErrorCheck(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+/* CUDA error checking */
+{
+   if (code != cudaSuccess)
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
 
 template<class state_type, class system>
 state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 
 	// Gpu memory alloc and parameters
 	state_type* state_matrix, *g_u;
-	cudaMalloc(&g_u, sizeof(dim));
-	cudaMalloc(&state_matrix, 5*dim*sizeof(state_type));
+	gpuErrorCheck(cudaMalloc(&g_u, dim*sizeof(state_type)));
+	gpuErrorCheck(cudaMalloc(&state_matrix, 5*dim*sizeof(state_type)));
 	
 	double* g_coefs;
-	cudaMalloc(&g_coefs, 5*sizeof(double));
+	gpuErrorCheck(cudaMalloc(&g_coefs, 5*sizeof(double)));
 	
-	int thread_per_block = 1024;
-	int blockSize = ceil(dim/thread_per_block);
+	int thread_per_block = 512;
+	int blockSize = ceil((float)dim/thread_per_block);
 	
 	// CPU memory alloc
 	state_type *f0 = new state_type[dim];
@@ -23,11 +38,11 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	state_type* u = new state_type[dim];
 	state_type* u_sol = new state_type[dim];
 	
-	int i;
 	double t1 = t0 + dt/2.0;
 	double t2 = t0 + dt/2.0;
 	double t3 = t0 + dt;
 	double coefs[5];
+	cudaError err;
 
 	//  Get four sample values of the derivative.
 	// k1
@@ -35,47 +50,50 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	
 	// k2
 	coefs[0] = 1;	coefs[1] = dt/2;
-	cudaMemcpy(g_coefs, coefs, 2*sizeof(double), cudaMemcpyHostToDevice);
-	cudaMemcpy(state_matrix+dim, f0, dim*sizeof(state_type), cudaMemcpyHostToDevice);
-	sumk<<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 2);
-	cudaDeviceSynchronize();
-	cudaMemcpy(u, g_u, dim*sizeof(state_type));
+	gpuErrorCheck(cudaMemcpy(g_coefs, coefs, 2*sizeof(double), cudaMemcpyHostToDevice));
+	gpuErrorCheck(cudaMemcpy(state_matrix+dim, f0, dim*sizeof(state_type), cudaMemcpyHostToDevice));
+	//sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 2);
+	sumk<state_type><<<blockSize, thread_per_block>>>();
+	gpuErrorCheck(cudaDeviceSynchronize());
+	gpuErrorCheck(cudaMemcpy(u, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost));
 	f(dim, u, f1, t1);
 
+/*
 	// k3
 	coefs[0] = 1;	coefs[1] = 0;	coefs[2] = dt/2;
-	cudaMemcpy(g_coefs, coefs, 3*sizeof(double), cudaMemcpyHostToDevice);
-	cudaMemcpy(state_matrix+2*dim, f1, dim*sizeof(state_type), cudaMemcpyHostToDevice);
-	sumk<<<blockSize, 1024>>>(dim, g_u, state_matrix, g_coefs, 3);
-	cudaDeviceSynchronize();
-	cudaMemcpy(u, g_u, dim*sizeof(state_type));
+	gpuErrorCheck(cudaMemcpy(g_coefs, coefs, 3*sizeof(double), cudaMemcpyHostToDevice));
+	gpuErrorCheck(cudaMemcpy(state_matrix+2*dim, f1, dim*sizeof(state_type), cudaMemcpyHostToDevice));
+	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 3);
+	gpuErrorCheck(cudaDeviceSynchronize());
+	gpuErrorCheck(cudaMemcpy(u, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost));
 	f(dim, u, f2, t2);
 
 	// k4
 	coefs[0] = 1;	coefs[1] = 0;
 	coefs[2] = 0;	coefs[3] = 1;
-	cudaMemcpy(g_coefs, coefs, 4*sizeof(double), cudaMemcpyHostToDevice);
-	cudaMemcpy(state_matrix+3*dim, f2, dim*sizeof(state_type), cudaMemcpyHostToDevice);
-	sumk<<<blockSize, 1024>>>(dim, g_u, state_matrix, g_coefs, 4);
-	cudaDeviceSynchronize();
-	cudaMemcpy(u, g_u, dim*sizeof(state_type));
+	gpuErrorCheck(cudaMemcpy(g_coefs, coefs, 4*sizeof(double), cudaMemcpyHostToDevice));
+	gpuErrorCheck(cudaMemcpy(state_matrix+3*dim, f2, dim*sizeof(state_type), cudaMemcpyHostToDevice));
+	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 4);
+	gpuErrorCheck(cudaDeviceSynchronize());
+	gpuErrorCheck(cudaMemcpy(u, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost));
 	f(dim, u, f3, t3);
 
 	//  Combine them to estimate the solution.
 	coefs[0] = 1;		coefs[1] = dt/6;	coefs[2] = dt/3;	
 	coefs[3] = dt/3;	coefs[4] = dt/6;
-	cudaMemcpy(g_coefs, coefs, 5*sizeof(double), cudaMemcpyHostToDevice);
-	cudaMemcpy(state_matrix+4*dim, f3, dim*sizeof(state_type), cudaMemcpyHostToDevice);
-	sumk<<<blockSize, 1024>>>(dim, g_u, state_matrix, g_coefs, 5);
-	cudaDeviceSynchronize();
-	cudaMemcpy(u_sol, g_u, dim*sizeof(state_type));
+	gpuErrorCheck(cudaMemcpy(g_coefs, coefs, 5*sizeof(double), cudaMemcpyHostToDevice));
+	gpuErrorCheck(cudaMemcpy(state_matrix+4*dim, f3, dim*sizeof(state_type), cudaMemcpyHostToDevice));
+	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 5);
+	gpuErrorCheck(cudaDeviceSynchronize());
+	gpuErrorCheck(cudaMemcpy(u_sol, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost));
+*/
 
 	//  Free memory.
 	delete[] f0;	delete[] f1;
 	delete[] f2;	delete[] f3;
 	delete[] u;		delete[] u_sol;
 	cudaFree(g_u);	cudaFree(state_matrix);
-	cudaFree(g_coef);
+	cudaFree(g_coefs);
 	
 	return u_sol;
 
@@ -97,19 +115,21 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 
 	// loop over time
 	while(t_max > t0) {
-		//std::cout << "ping" << std::endl;
+		
 		u1 = rk4<state_type, system>(dim, f, t0, u0, step);
 
 		t0 += step;		c += 1;
 		delete[] u0;	u0 = u1;
 
-		if( (c%10000)==0 ) {
+		if( (c%1000)==0 ) {
+			std::cout << "ping:" << t0 << "<" << t_max << std::endl;
 			f.observer(dim, u0, t0);
 		}
 	}
 	
 	delete[] u0;
 }
+
 
 /*template<class state_type, class system>
 void rk4_wrapper(int dim, system f, state_type* initial_u,

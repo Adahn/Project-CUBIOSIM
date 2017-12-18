@@ -1,12 +1,13 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
-#include <math.h>
-
+#include <stdio.h>
 
 template<class state_type>
-__global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, int n_v) {
+//__global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, int n_v) 
+__global__ void sumk() 
+{
 
-	int grain = ceil((double)n/(gridDim.x*blockDim.x));
+	/*int grain = ceil((double)n/(gridDim.x*blockDim.x));
 	int index = blockIdx.x*blockDim.x*grain+threadIdx.x;
 
 	for(int i=0; i<grain; i++) {
@@ -17,8 +18,8 @@ __global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, in
 			}
 		}
 		index+=blockDim.x;
-	}
+	}*/
+	printf("lucas est la\n");
 
 }
-
 
