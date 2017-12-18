@@ -9,12 +9,12 @@ LIB=-L./lib
 LDFLAGS=$(INC) $(LIB)
 
 .PHONY: all
-all: ./bin/repr_rk45
+all: ./bin/repr_rk4
 
 %.o: src/%.cc
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
-./bin/repr_rk45: $(OBJ)
+./bin/repr_rk4: $(OBJ)
 	$(CC) $(LDFLAGS) $(CFLAGS)  -o $@ $^
 
 
@@ -24,5 +24,5 @@ clean:
 	rm -f bin/*
 
 exec:
-	time ./bin/repr_rk45
+	time ./bin/repr_rk4
 
