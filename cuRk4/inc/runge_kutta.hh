@@ -22,6 +22,7 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	state_type* state_matrix, *g_u;
 	gpuErrorCheck(cudaMalloc(&g_u, dim*sizeof(state_type)));
 	gpuErrorCheck(cudaMalloc(&state_matrix, 5*dim*sizeof(state_type)));
+	gpuErrorCheck(cudaMemcpy(state_matrix, u0, dim*sizeof(state_type), cudaMemcpyHostToDevice));
 	
 	double* g_coefs;
 	gpuErrorCheck(cudaMalloc(&g_coefs, 5*sizeof(double)));
@@ -42,7 +43,6 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	double t2 = t0 + dt/2.0;
 	double t3 = t0 + dt;
 	double coefs[5];
-	cudaError err;
 
 	//  Get four sample values of the derivative.
 	// k1
@@ -52,13 +52,11 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	coefs[0] = 1;	coefs[1] = dt/2;
 	gpuErrorCheck(cudaMemcpy(g_coefs, coefs, 2*sizeof(double), cudaMemcpyHostToDevice));
 	gpuErrorCheck(cudaMemcpy(state_matrix+dim, f0, dim*sizeof(state_type), cudaMemcpyHostToDevice));
-	//sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 2);
-	sumk<state_type><<<blockSize, thread_per_block>>>();
+	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 2);
 	gpuErrorCheck(cudaDeviceSynchronize());
 	gpuErrorCheck(cudaMemcpy(u, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost));
 	f(dim, u, f1, t1);
 
-/*
 	// k3
 	coefs[0] = 1;	coefs[1] = 0;	coefs[2] = dt/2;
 	gpuErrorCheck(cudaMemcpy(g_coefs, coefs, 3*sizeof(double), cudaMemcpyHostToDevice));
@@ -86,12 +84,11 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 5);
 	gpuErrorCheck(cudaDeviceSynchronize());
 	gpuErrorCheck(cudaMemcpy(u_sol, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost));
-*/
 
 	//  Free memory.
 	delete[] f0;	delete[] f1;
 	delete[] f2;	delete[] f3;
-	delete[] u;		delete[] u_sol;
+	delete[] u;
 	cudaFree(g_u);	cudaFree(state_matrix);
 	cudaFree(g_coefs);
 	
@@ -121,9 +118,9 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 		t0 += step;		c += 1;
 		delete[] u0;	u0 = u1;
 
-		if( (c%1000)==0 ) {
-			std::cout << "ping:" << t0 << "<" << t_max << std::endl;
+		if( (c%10000)==0 ) {
 			f.observer(dim, u0, t0);
+			cout << "t=" << t0 << endl;
 		}
 	}
 	

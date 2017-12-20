@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
 	// compute
 	cout << "call rk4...\t" << flush;
 	rk4_wrapper<double, Repressilator_ODE&>
-			( 2*(n+1), repr_rk4, Y0 , 0.0 , 100, 1e-2);
+			( 2*(n+1), repr_rk4, Y0 , 0.0 , 10000, 1e-2);
 	cout << "done" << endl;
 
 	/*
