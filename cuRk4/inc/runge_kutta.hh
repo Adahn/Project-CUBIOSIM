@@ -48,22 +48,22 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 	
 	// k2 <=> f1
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs, 2);
-	cudaDeviceSynchronize();
+	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+2*dim, t1);
 
 	// k3 <=> f2
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+5, 3);
-	cudaDeviceSynchronize();
+	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+3*dim, t2);
 
 	// k4 <=> f3
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+2*5, 4);
-	cudaDeviceSynchronize();
+	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+4*dim, t3);
 
 	//  Combine them to estimate the solution.
-	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs, 5);
-	cudaDeviceSynchronize();
+	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+3*5, 5);
+	//cudaDeviceSynchronize();
 	cudaMemcpy(u_sol, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost);
 
 	//  Free memory.
