@@ -1,4 +1,5 @@
 #include <iostream>
+#include "utility.hh"
 
 template<class state_type, class system>
 state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
@@ -14,6 +15,9 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 
 	state_type* u = new state_type[dim];
 
+	debug_GPU(u0, dim, "u0 initialisation:");
+
+
 	int i;
 	double t1 = t0 + dt/2.0;
 	double t2 = t0 + dt/2.0;
@@ -23,23 +27,29 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	// k1
 	f(dim, u0, f0, t0);
 
+	debug_GPU(f0, dim, "f0 <=> k1:");
+
+
 	// k2
 	for (i=0; i<dim; i++) {
 		u1[i] = u0[i] + dt*f0[i]/2.0;
 	}
 	f(dim, u1, f1, t1);
+	debug_GPU(f1, dim, "f1 <=> k2:");
 
 	// k3
 	for ( i = 0; i < dim; i++ ) {
 		u2[i] = u0[i] + dt*f1[i]/2.0;
 	}
 	f(dim, u2, f2, t2);
+	debug_GPU(f2, dim, "f2 <=> k3:");
 
 	// k4
 	for(i=0; i<dim; i++) {
 		u3[i] = u0[i] + dt*f2[i];
 	}
 	f(dim, u3, f3, t3);
+	debug_GPU(f3, dim, "f3 <=> k4:");
 
 	//  Combine them to estimate the solution.
 	for ( i = 0; i < dim; i++ ) {
@@ -81,7 +91,7 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 			f.observer(dim, u0, t0);
 		}
 	}
-	
+
 	delete[] u0;
 }
 
@@ -138,7 +148,7 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	}
 	f(dim, u3, f3, t3);
 
-	// k5 
+	// k5
 	for(i=0; i<dim; i++) {
 		u4[i] = u0[i] + dt * (439.0/216*f0[i] - 8*f1[i] + 3680/513*f2[i] - 845/4104*f3[i]);
 	}
@@ -162,7 +172,7 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	{
 		*R += (w1[i] - w2[i])*(w1[i] - w2[i]);
 	}
-	
+
 	*R = 1.0/dt * sqrt(*R);
 
 	*delta = 0.84* pow(eps/(*R), 1.0/4.0); // step
@@ -182,10 +192,10 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 template<class state_type, class system>
 void rk45_wrapper(int dim, system f, state_type* initial_u,
         double t0, double t_max, double step, double eps) {
-        
+
 	state_type* u0 = new state_type[dim];
 	state_type* u1;
-	
+
 	state_type R;
 	double delta;
 
@@ -201,7 +211,7 @@ void rk45_wrapper(int dim, system f, state_type* initial_u,
 
 		if ( R <= eps ) {
 			t0 += step;		step=delta*step;
-			delete[] u0;	u0 = u1; 
+			delete[] u0;	u0 = u1;
 		}
 		else {
 			step = delta*step;
@@ -209,6 +219,6 @@ void rk45_wrapper(int dim, system f, state_type* initial_u,
 
 		f.observer(dim, u0, t0);
 	}
-	
+
 	delete[] u0;
 }

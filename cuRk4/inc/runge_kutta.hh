@@ -31,6 +31,8 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 	state_type *g_u;	// temporary variable
 	cudaMalloc(&g_u, dim*sizeof(state_type));
 
+    debug_GPU(state_matrix, dim, "u0 initialisation:");
+
 	// TODO arbitrary for the moment
 	int thread_per_block = 512;
 	int blockSize = ceil((float)dim/thread_per_block);
@@ -45,25 +47,32 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 	//  Get four sample values of the derivative.
 	// k1 <=> f0
 	f(dim, state_matrix, state_matrix+dim, t0);
+    debug_GPU(state_matrix+dim, dim, "f0 <=> k1:");
+
 
 	// k2 <=> f1
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs, 2);
 	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+2*dim, t1);
+    debug_GPU(state_matrix+2*dim, dim, "f1 <=> k2:");
+
 
 	// k3 <=> f2
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+5, 3);
 	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+3*dim, t2);
+    debug_GPU(state_matrix+3*dim, dim, "f2 <=> k3:");
 
 	// k4 <=> f3
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+2*5, 4);
 	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+4*dim, t3);
+    debug_GPU(state_matrix+4*dim, dim, "f3 <=> k4:");
+
 
 	//  Combine them to estimate the solution.
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+3*5, 5);
-	//cudaDeviceSynchronize();
+	cudaDeviceSynchronize();
 	cudaMemcpy(u_sol, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost);
 
 	//  Free memory.

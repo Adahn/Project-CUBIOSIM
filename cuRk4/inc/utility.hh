@@ -1,6 +1,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <stdio.h>
+#include <string>
 
 template<class state_type>
 __global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, int n_v)
@@ -40,4 +41,20 @@ void load_coef(double* g_coefs)
 
 	cudaMemcpy(g_coefs, coefs, 4*5*sizeof(double), cudaMemcpyHostToDevice);
 
+}
+
+template<class state_type>
+void debug_GPU(state_type* gpu_v, int dim, std::string message){
+
+	state_type* cpu_v = new state_type[dim];
+	cudaMemcpy(cpu_v, gpu_v, dim*sizeof(state_type), cudaMemcpyDeviceToHost);
+
+	std::cout << message << '\n';
+	for (size_t i = 0; i < dim; i++) {
+		std::cout << cpu_v[i] << "\t";
+	}
+	std::cout << '\n';
+
+
+	delete[] cpu_v;
 }
