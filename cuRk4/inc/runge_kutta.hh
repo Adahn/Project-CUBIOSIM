@@ -30,14 +30,14 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 
 	state_type *g_u;	// temporary variable
 	cudaMalloc(&g_u, dim*sizeof(state_type));
-	
+
 	// TODO arbitrary for the moment
 	int thread_per_block = 512;
 	int blockSize = ceil((float)dim/thread_per_block);
-	
+
 	// CPU memory alloc
 	state_type* u_sol = new state_type[dim];
-	
+
 	double t1 = t0 + dt/2.0;
 	double t2 = t0 + dt/2.0;
 	double t3 = t0 + dt;
@@ -45,7 +45,7 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 	//  Get four sample values of the derivative.
 	// k1 <=> f0
 	f(dim, state_matrix, state_matrix+dim, t0);
-	
+
 	// k2 <=> f1
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs, 2);
 	//cudaDeviceSynchronize();
@@ -68,7 +68,7 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 
 	//  Free memory.
 	cudaFree(g_u);	cudaFree(state_matrix);
-	
+
 	return u_sol;
 
 }
@@ -86,31 +86,18 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 		u0[i] = initial_u[i];
 	}
 	f.observer(dim, u0, t0);
-	
+
 	// load coefficients array on GPU, to be fed to the sumk primitive
 	// each line corresponds to the coef. of one term un the runge kutta method
 	// for ex 1 row represents coef [1, step/2, 0, 0, 0] of this term:
 	//		f1 = u0 + dt*f0/2
-	double coefs[4*5];
-	coefs[0]=1;		coefs[1]=step/2;
-	coefs[2]=coefs[3]=coefs[4]=0;
-	
-	coefs[5]=1;	coefs[6]=0;	coefs[7]=step/2;
-	coefs[8]=coefs[9]=0;
-	
-	coefs[10]=1;	coefs[11]=0;	coefs[12]=0;	coefs[13]=step;
-	coefs[14]=0;
-	
-	coefs[15]=1;		coefs[16]=step/6;	coefs[17]=step/3;	
-	coefs[18]=step/3;	coefs[19]=step/6;
-	
 	double* g_coefs;	// coefficients array
 	cudaMalloc(&g_coefs, 4*5*sizeof(double));
-	cudaMemcpy(g_coefs, coefs, 4*5*sizeof(double), cudaMemcpyHostToDevice);
+    load_coef(g_coefs);
 
 	// loop over time
 	while(t_max > t0) {
-		
+
 		u1 = rk4<state_type, system>(dim, f, t0, u0, step, g_coefs);
 
 		t0 += step;		c += 1;
@@ -121,7 +108,7 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 			cout << "t=" << t0 << endl;
 		}
 	}
-	
+
 	delete[] u0;
 	cudaFree(g_coefs);
 }
@@ -179,7 +166,7 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	}
 	f(dim, u3, f3, t3);
 
-	// k5 
+	// k5
 	for(i=0; i<dim; i++) {
 		u4[i] = u0[i] + dt * (439.0/216*f0[i] - 8*f1[i] + 3680/513*f2[i] - 845/4104*f3[i]);
 	}
@@ -203,7 +190,7 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	{
 		*R += (w1[i] - w2[i])*(w1[i] - w2[i]);
 	}
-	
+
 	*R = 1.0/dt * sqrt(*R);
 
 	*delta = 0.84* pow(eps/(*R), 1.0/4.0); // step
@@ -223,20 +210,20 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 template<class state_type, class system>
 void rk45_wrapper(int dim, system f, state_type* initial_u,
         double t0, double t_max, double step, double eps) {
-    
+
     // the state matrices cointain u0 and the intermediate terms :
     // u0
     // f0
     // ...
     // f5
-    
+
 	state_type* state_matrix0;
 	state_type* state_matrix1;
-	
+
 	cudaMalloc(&u0, 7*dim*sizeof(state_type));
 	cudaMemcpy(u0, initial_u, dim*sizeof(state_type));
 	f.observer(dim, initial_u, t0);
-	
+
 	state_type R;
 	double delta;
 
@@ -249,7 +236,7 @@ void rk45_wrapper(int dim, system f, state_type* initial_u,
 
 		if ( R <= eps ) {
 			t0 += step;		step=delta*step;
-			delete[] u0;	u0 = u1; 
+			delete[] u0;	u0 = u1;
 		}
 		else {
 			step = delta*step;
@@ -257,6 +244,6 @@ void rk45_wrapper(int dim, system f, state_type* initial_u,
 
 		f.observer(dim, u0, t0);
 	}
-	
+
 	delete[] u0;
 }*/
