@@ -41,7 +41,6 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 	double t1 = t0 + dt/2.0;
 	double t2 = t0 + dt/2.0;
 	double t3 = t0 + dt;
-	double coefs[5];
 
 	//  Get four sample values of the derivative.
 	// k1 <=> f0
@@ -49,23 +48,23 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 	
 	// k2 <=> f1
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs, 2);
-	cudaDeviceSynchronize());
+	cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+2*dim, t1);
 
 	// k3 <=> f2
-	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs+5, 3);
-	cudaDeviceSynchronize());
+	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+5, 3);
+	cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+3*dim, t2);
 
 	// k4 <=> f3
-	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs+2*5, 4);
-	cudaDeviceSynchronize());
+	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+2*5, 4);
+	cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+4*dim, t3);
 
 	//  Combine them to estimate the solution.
-	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, g_coefs, 5);
-	cudaDeviceSynchronize());
-	cudaMemcpy(u_sol, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost));
+	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs, 5);
+	cudaDeviceSynchronize();
+	cudaMemcpy(u_sol, g_u, dim*sizeof(state_type), cudaMemcpyDeviceToHost);
 
 	//  Free memory.
 	cudaFree(g_u);	cudaFree(state_matrix);
@@ -106,8 +105,8 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 	coefs[18]=step/3;	coefs[19]=step/6;
 	
 	double* g_coefs;	// coefficients array
-	cudaMalloc(&g_coefs, 4*5*sizeof(double)));
-	cudaMemcpy(g_coefs, coefs, 4*5*sizeof(double), cudaMemcpyHostToDevice));
+	cudaMalloc(&g_coefs, 4*5*sizeof(double));
+	cudaMemcpy(g_coefs, coefs, 4*5*sizeof(double), cudaMemcpyHostToDevice);
 
 	// loop over time
 	while(t_max > t0) {

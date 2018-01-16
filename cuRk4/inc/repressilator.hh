@@ -105,8 +105,6 @@ class Repressilator_ODE
 			tmp_decay[j] = dmRNA;		// last RNA
 			tmp_S[_nspec*_nreac-1] = 1;		// S last line is the same as the previous one
 			
-			check(tmp_decay, tmp_S);
-			
 			// copy H2D
 			cudaMemcpy(S, tmp_S, _nspec*_nreac*sizeof(double), cudaMemcpyHostToDevice);
 			cudaMemcpy(decay, tmp_decay, _nspec*sizeof(double), cudaMemcpyHostToDevice);
@@ -115,33 +113,14 @@ class Repressilator_ODE
 			delete[] tmp_decay;
 		}
 		
-		void check(double* decay, double* S) {
-			for(int i=0; i<_nspec; i++) {
-				cout << decay[i] << "\t";
-			}
-			cout << endl;
-			cout << endl;
-			
-			for(int i=0; i<_nspec; i++) {
-				for(int j=0; j<_nreac; j++) {
-					cout << S[i + j*_nspec] << "\t";
-				}
-				cout << endl;
-			}
-			cout << "checked" << endl << endl;
-		}
-		
 		void operator()( const int dim, double* Y, double* dYdt, const double t ) {
 
 			int thread_per_block = 512;
 			int blockSize = ceil((float)dim/thread_per_block);
 			computeR<<<blockSize,thread_per_block>>>(R, Y, _Ktl, _Ktr, _KR, _nR, _n);
 
-			cout << "R computed" << endl;
-
 			// Compute d*Y
 			computeDecay<<<blockSize,thread_per_block>>>(dYdt, Y, decay, _n);
-			cout << "decay computed" << endl;
 
 			// Model: dYdt = S*R - d*Y
 			//TODO sparse ?
@@ -149,8 +128,6 @@ class Repressilator_ODE
 			_status = cublasDgemv(_handle, CUBLAS_OP_N, _nspec, _nreac, &alpha, S, _nspec,
 				R, 1, &beta, dYdt, 1);
 				
-			cout << "done" << endl;
-
 		}
 
 		// utility functions
