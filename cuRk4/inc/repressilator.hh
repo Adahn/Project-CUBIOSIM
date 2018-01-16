@@ -7,24 +7,26 @@
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
 
+#include <utility.hh>
+
 using namespace std;
 
 // tested successfully
 __global__ void computeR(double* R, double* Y, double Ktl, double Ktr, double KR, double nR,
 						int n) {
 	int tid = blockIdx.x*blockDim.x + threadIdx.x;
-	int nspec = 2*(n+1);
+	int nreac = 2*n+1;
 
 	//for( int i=0; i<_n+1; i++ )
 	if(tid<n+1) {
 		R[tid] = Ktl*Y[tid+n+1];
 	}
 	//for( int i=1; i<_n; i++ )
-	else if(tid<2*n+1) {
+	else if(tid<2*n) {
 		R[tid] = Ktr/(1 + pow(Y[tid-n]/KR, nR));
 	}
-	else if(tid<nspec) {
-		R[2*n+1] = Ktr/(1 + pow(Y[0]/KR, nR));
+	else if(tid<nreac) {
+		R[tid] = Ktr/(1 + pow(Y[0]/KR, nR));
 	}
 }
 

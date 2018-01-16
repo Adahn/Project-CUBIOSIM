@@ -1,3 +1,4 @@
+#pragma once
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <stdio.h>
@@ -24,7 +25,7 @@ __global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, in
 
 }
 
-void load_coef(double* g_coefs)
+void load_coef(double* g_coefs, double step)
 {
 	double coefs[4*5];
 	coefs[0]=1;		coefs[1]=step/2;

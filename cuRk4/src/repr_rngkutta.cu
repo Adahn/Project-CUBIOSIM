@@ -77,13 +77,13 @@ int main(int argc, char **argv) {
 	// compute
 	cout << "call rk4...\t" << flush;
 	rk4_wrapper<double, Repressilator_ODE&>
-			( 2*(n+1), repr_rk4, Y0 , 0.0 , 10000, 1e-2);
+			( 2*(n+1), repr_rk4, Y0 , 0.0 , 1000, 1e-2);
 	cout << "done" << endl;
 
 	/*
 	cout << "call rk45...\t" << flush;
 	rk45_wrapper<double, Repressilator_ODE&>
-			( 2*(n+1), repr_rk45, Y0 , 0.0 , 10000 , 1e-2, 1e-6);
+			( 2*(n+1), repr_rk45, Y0 , 0.0 , 5000 , 1e-2, 1e-6);
 	cout << "done" << endl;
 	*/
 	
