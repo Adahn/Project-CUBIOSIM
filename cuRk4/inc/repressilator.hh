@@ -140,13 +140,11 @@ class Repressilator_ODE
 			cout << "R computed" << endl;
 
 			// Compute d*Y
-			double* tmp;
-			cudaMalloc(&tmp, _nspec*sizeof(double));
 			computeDecay<<<blockSize,thread_per_block>>>(dYdt, Y, decay, _n);
 			cout << "decay computed" << endl;
 
 			// Model: dYdt = S*R - d*Y
-			//TODO find cuBLas routine(s) to perform the operation
+			//TODO sparse ?
 			double alpha = 1; double beta = -1;
 			_status = cublasDgemv(_handle, CUBLAS_OP_N, _nspec, _nreac, &alpha, S, _nspec,
 				R, 1, &beta, dYdt, 1);
@@ -172,8 +170,6 @@ class Repressilator_ODE
 
 	~Repressilator_ODE() {
 		cublasDestroy(_handle);
-		//free(S);	free(R);	free(decay);
-		//delete[] S;	delete[] R;	delete[] decay;
 		cudaFree(S);	cudaFree(R);	cudaFree(decay);
 	}
 };
