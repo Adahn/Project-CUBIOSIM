@@ -1,3 +1,16 @@
+/***************
+
+Project cuBIOSIM
+Polytech Paris UPMC
+
+authors:
+	Liliane Kissita
+	Elise Grojean
+	Adrian Ahne
+	Lucas Gaudelet
+
+****************/
+
 #include <iostream>
 #include <boost/numeric/odeint.hpp>
 #include <thrust/host_vector.h>
@@ -11,30 +24,29 @@
 #include <fstream>
 #include <vector> 
 
-#define NSPECIES 8
-#define NREACTIONS 7
-
-using namespace std;
-using namespace boost::numeric::odeint;
-
-typedef double value_type;
-typedef thrust::device_vector< double > state_type;
-typedef thrust::device_vector< device_vector< double > > matrix;
-typedef runge_kutta4< state_type , value_type , state_type , value_type , thrust_algebra , thrust_operations > stepper_type;
+// command line parser and timer
+#include <chCommandLine.h>
+#include <chTimer.hpp>
 
 
-// Parameter definition
-const double Ktl = 1e-2;
-const double Ktr = 1e-3;
-const double KR = 1e-2;
-const double nR = 2;
-const double dprot = 1e-3;
-const double dmRNA = 1e-2;
+// Constants
+const static int DEFAULT_N = 3;
+
+const static double Ktl = 1e-2;	// Translation rate
+const static double Ktr = 1e-3;	// Transcription rate
+const static double KR = 1e-2;  // Strength of repressors
+const static double nR = 2;	// Hills coefficient of repressors
+const static double dprot = 1e-3;	// Protein degradation rate
+const static double dmRNA = 1e-2;	// mRNA degradation rate
+
+int NSPECIES;
+int NREACTIONS;
+
+// function prototypes
+void write_ODE_result( const vector<double> &Y, const double t );
+void print_help(char* argv);
 
 
-state_type decay(NSPECIES); // device
-thrust::fill(decay.begin(), decay.begin() + NSPECIES/2, dprot);//copie des 4 premiers elts à dprot
-thrust::fill(decay.begin()+NSPECIES/2, decay.begin() + NSPECIES, dmRNA);//copie des
 
 
 struct repressilator
@@ -43,11 +55,11 @@ struct repressilator
 	struct R_vect {
 		R_vect(vector <double> Y) : Y_(Y) {}
 		vector <double> operator()(vector<double> Y) const { 		
-			for(size_t i=0;i<8;i++){//Declaration de R
-				if(i<4)
-					R_.push_back(Ktl*Y[i+4]);
-				else if(i<6)
-					R_.push_back(Ktr/(1 + pow(Y[i-3]/KR, nR)));
+			for(size_t i=0;i<NSPECIES;i++){//Declaration de R
+				if(i<NSPECIES/2)
+					R_.push_back(Ktl*Y[i+NSPECIES/2]);
+				else if(i<NSPECIES-2)
+					R_.push_back(Ktr/(1 + pow(Y[i-(NSPECIES/2-1)]/KR, nR)));
 				else
 					R_.push_back(Ktr/(1 + pow(Y[0]/KR, nR)));
 			}
@@ -106,8 +118,36 @@ void write_ODE_result( const state_type &Y, const double t )
 
 const value_type dt = 0.01;
 
-int main( int arc , char* argv[] )
-{
+// main
+int main(int argc, char **argv) {
+
+	// print help
+	bool      help = chCommandLineGetBool("h", argc, argv);
+	if(!help) help = chCommandLineGetBool("help", argc, argv);
+	if(help)  print_help(argv[0]);
+
+	// repressilator size
+	int n = -1;
+	chCommandLineGet<int>(&n, "n", argc, argv);
+	chCommandLineGet<int>(&n, "repressor-number", argc, argv);
+	n = (n!=-1)? n:DEFAULT_N;
+	
+	if( n%2==0 ) {
+		cout << "n must be an odd interger" << endl;
+		exit(-1);
+	}
+	else {
+		cout << "repressors : " << n 
+			<< "\tspecies: " << 2*(n+1)
+			<< "\treactions: " << 2*n+1 << endl;
+			NSPECIES=2*(n+1);
+			NREACTIONS=2*n+1;
+	}
+
+	state_type decay(NSPECIES); // device
+	thrust::fill(decay.begin(), decay.begin() + NSPECIES/2, dprot);//copie des 4 premiers elts à dprot
+	thrust::fill(decay.begin()+NSPECIES/2, decay.begin() + NSPECIES, dmRNA);//copie des
+
     // initialize the initial state X
     vector< value_type > X0_host( NSPECIES );
    	X0_host.push_back(1e-6);
@@ -123,6 +163,20 @@ int main( int arc , char* argv[] )
     return 0;
 }
 
-	// result matrix
-	//integrate( Repressilator_ODE , X0 , 0.0 , 100000.0 , 1e-2 , write_ODE_result );
+
+
+// utility functions
+void write_ODE_result( const vector<double> &Y, const double t )
+{
+	ofstream file;
+	file.open ("bin/Result.csv",ios::app); // write at the end of file
+	
+	file << t;
+	for( double d : Y) {
+		file << ";" << d;	
+	}
+	file << "\n";
+	
+	file.close();
+}
 
