@@ -1,7 +1,7 @@
-SRC=repressilator_thrust.cc 
-OBJ=repressilator_thrust.o  
+SRC=src/repr_rngkutta.cc
+OBJ=repr_rngkutta.o
 
-CC=nvcc #g++
+CC=g++ #nvcc
 CFLAGS=-Wall -std=c++11
 
 INC=-I./inc 
@@ -9,12 +9,12 @@ LIB=-L./lib
 LDFLAGS=$(INC) $(LIB)
 
 .PHONY: all
-all: ./bin/repressilator
+all: ./bin/repr_rk4
 
 %.o: src/%.cc
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
-./bin/repressilator: $(OBJ)
+./bin/repr_rk4: $(OBJ)
 	$(CC) $(LDFLAGS) $(CFLAGS)  -o $@ $^
 
 
@@ -24,5 +24,5 @@ clean:
 	rm -f bin/*
 
 exec:
-	time ./bin/repressilator
+	time ./bin/repr_rk4
 
