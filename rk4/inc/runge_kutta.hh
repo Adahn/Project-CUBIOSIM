@@ -15,9 +15,6 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 
 	state_type* u = new state_type[dim];
 
-	debug_GPU(u0, dim, "u0 initialisation:");
-
-
 	int i;
 	double t1 = t0 + dt/2.0;
 	double t2 = t0 + dt/2.0;
@@ -27,29 +24,23 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	// k1
 	f(dim, u0, f0, t0);
 
-	debug_GPU(f0, dim, "f0 <=> k1:");
-
-
 	// k2
 	for (i=0; i<dim; i++) {
 		u1[i] = u0[i] + dt*f0[i]/2.0;
 	}
 	f(dim, u1, f1, t1);
-	debug_GPU(f1, dim, "f1 <=> k2:");
 
 	// k3
 	for ( i = 0; i < dim; i++ ) {
 		u2[i] = u0[i] + dt*f1[i]/2.0;
 	}
 	f(dim, u2, f2, t2);
-	debug_GPU(f2, dim, "f2 <=> k3:");
 
 	// k4
 	for(i=0; i<dim; i++) {
 		u3[i] = u0[i] + dt*f2[i];
 	}
 	f(dim, u3, f3, t3);
-	debug_GPU(f3, dim, "f3 <=> k4:");
 
 	//  Combine them to estimate the solution.
 	for ( i = 0; i < dim; i++ ) {
