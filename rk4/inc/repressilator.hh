@@ -10,15 +10,15 @@ using namespace std;
 class Repressilator_ODE
 {
 	private:
-		// size
+		// sizes
 		int _n;
 		int _nreac;
 		int _nspec;
 
 		// system parameters
-		double* R;
-		double* decay;
-		int* S;
+		double* R;	// reaction rates
+		double* decay;	// decay vector
+		int* S;		// stochiometric matrix
 
 		// Rate parameters
 		double _Ktl;
@@ -26,7 +26,7 @@ class Repressilator_ODE
 		double _KR;
 		double _nR;
 		
-		// other variables
+		// utility variables
 		string _filename;
 	
 	public:	
@@ -36,10 +36,11 @@ class Repressilator_ODE
 			_Ktl(Ktl), _Ktr(Ktr), _KR(KR), _nR(nR),
 			_filename(filename)
 		{
-			S = new int[_nspec * _nreac]; //(int*)calloc( _nspec * _nreac, sizeof(int) );
-			R = new double[_nspec]; //(double*)calloc(_nspec, sizeof(double));
-			decay = new double[_nspec]; //(double*)calloc(_nspec, sizeof(double));
-	
+			S = new int[_nspec * _nreac];
+			R = new double[_nspec];
+			decay = new double[_nspec];
+
+			// assemble S and d
 			int i,j;
 			for( i=0; i<_n+1; i++ ) {
 				decay[i] = dprot;	// prot
@@ -53,6 +54,7 @@ class Repressilator_ODE
 			S[j *_nreac+ j-1] = 1;		// S last line is the same as the previous one
 		}
 
+		// Overloading operator () to compute the derivate
 		void operator()( const int dim, double* Y, double* dYdt, const double t ) {
 
 			// Reaction Rates
@@ -75,9 +77,8 @@ class Repressilator_ODE
 
 		}
 
-		// utility functions
-		void observer( const int dim, double* Y, const double t )
-		{
+		// This function stores the state given in argument
+		void observer( const int dim, double* Y, const double t ) {
 			ofstream file;
 			file.open(_filename,ios::app); // write at the end of file
 	
@@ -90,22 +91,7 @@ class Repressilator_ODE
 			file.close();
 		}
 
-		/*void check() {
-			for(int i=0; i<_nspec; i++) {
-				cout << decay[i] << "\t";
-			}
-			cout << endl;
-			cout << endl;
-			for(int i=0; i<_nspec; i++) {
-				for(int j=0; j<_nreac; j++) {
-					cout << S[i *_nreac+ j] << "\t";
-				}
-				cout << endl;
-			}
-		}*/
-		
 	~Repressilator_ODE() {
-		//free(S);	free(R);	free(decay);
 		delete[] S;	delete[] R;	delete[] decay;
 	}
 };
