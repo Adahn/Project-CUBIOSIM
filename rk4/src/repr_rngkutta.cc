@@ -14,9 +14,8 @@ authors:
 // standard C++
 #include <fstream>
 #include <iostream>
-#include <vector>
 
-// repressilator class
+// repressilator class and solver
 #include <repressilator.hh>
 #include <runge_kutta.hh>
 
@@ -83,9 +82,11 @@ int main(int argc, char **argv) {
 
 /*
 	cout << "call rk45...\t" << flush;
+	timer.start();
 	rk45_wrapper<double, Repressilator_ODE&>
 			( 2*(n+1), repr_rk45, Y0 , 0.0 , 10000 , 1e-2, 1e-6);
-	cout << "done" << endl;
+	timer.stop();
+	cout << "done : " << timer.getTime() << "s" << endl;
 */
 	free(Y0);
 
