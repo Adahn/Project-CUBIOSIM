@@ -1,8 +1,9 @@
-SRC=src/repr_rngkutta.cc
+SRC=src/repr_rngkutta.cu
 OBJ=repr_rngkutta.o
 
-CC=g++ #nvcc
-CFLAGS=-Wall -std=c++11
+CC=nvcc
+CFLAGS=-std=c++11 -g -G -lineinfo -arch=compute_35 -lcublas
+#CFLAGS=-std=c++11 -g -G -lineinfo -arch=compute_20
 
 INC=-I./inc 
 LIB=-L./lib 
@@ -11,7 +12,10 @@ LDFLAGS=$(INC) $(LIB)
 .PHONY: all
 all: ./bin/repr_rk4
 
-%.o: src/%.cc
+#%.o: src/%.cu
+#	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
+
+repr_rngkutta.o: src/repr_rngkutta.cu inc/runge_kutta.hh inc/utility.hh
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
 ./bin/repr_rk4: $(OBJ)

@@ -2,7 +2,7 @@ SRC=src/repr_rngkutta.cc
 OBJ=repr_rngkutta.o
 
 CC=g++ #nvcc
-CFLAGS=-Wall -std=c++11
+CFLAGS=-Wall -std=c++11 #-arch=compute_35
 
 INC=-I./inc 
 LIB=-L./lib 
