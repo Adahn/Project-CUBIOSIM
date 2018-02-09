@@ -16,51 +16,50 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-
+// computes and returns the next state of the system from u0=u(t0)
+// with time step dt
+// u0 is assumed to be on the CPU, the returned vector is also on CPU
 template<class state_type, class system>
 state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double* coefs) {
 
 	// Gpu memory alloc and parameters
 	// state_matrix is by line :
 	//	u0
-	//	f0
+	//	k1
 	//	...
-	//	f3
+	//	k4
 	state_type* state_matrix;
 	cudaMalloc(&state_matrix, 5*dim*sizeof(state_type));
 	cudaMemcpy(state_matrix, u0, dim*sizeof(state_type), cudaMemcpyHostToDevice);
 
-	state_type *g_u;	// temporary variable
+	state_type *g_u;	// temporary variable on the GPU
 	cudaMalloc(&g_u, dim*sizeof(state_type));
 
-	// TODO flexible dimensions, maybe in arguments
+	// TODO flexible dimensions for the kernel call
 	int thread_per_block = 512;
 	int blockSize = ceil((float)dim/thread_per_block);
 
 	// CPU memory alloc
-	state_type* u_sol = new state_type[dim];
+	state_type* u_sol = new state_type[dim]; // solution to be returned
 
 	double t1 = t0 + dt/2.0;
 	double t2 = t0 + dt/2.0;
 	double t3 = t0 + dt;
 
 	//  Get four sample values of the derivative.
-	// k1 <=> f0
+	// k1
 	f(dim, state_matrix, state_matrix+dim, t0);
 
-	// k2 <=> f1
+	// k2
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs, 2);
-	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+2*dim, t1);
 
-	// k3 <=> f2
+	// k3
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+5, 3);
-	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+3*dim, t2);
 
-	// k4 <=> f3
+	// k4
 	sumk<state_type><<<blockSize, thread_per_block>>>(dim, g_u, state_matrix, coefs+2*5, 4);
-	//cudaDeviceSynchronize();
 	f(dim, g_u, state_matrix+4*dim, t3);
 
 	//  Combine them to estimate the solution.
@@ -76,6 +75,9 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt, double*
 }
 
 
+// This function wraps the rk4 numeric scheme to iterate over the timespan
+// [t0,t_max] with step "step"
+// the initial_u is assumed to be on the CPU
 template<class state_type, class system>
 void rk4_wrapper(int dim, system f, state_type* initial_u,
         double t0, double t_max, double step) {
@@ -91,10 +93,10 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 	f.observer(dim, u0, t0);
 
 	// load coefficients array on GPU, to be fed to the sumk primitive
-	// each line corresponds to the coef. of one term un the runge kutta method
-	// for ex 1 row represents coef [1, step/2, 0, 0, 0] of this term:
-	//		f1 = u0 + dt*f0/2
-	double* g_coefs;	// coefficients array
+	// each line corresponds to the coefs of one term of the runge kutta method
+	// example: row 1 represents coef [1, step/2, 0, 0, 0] of this term:
+	//		k2 = u0 + dt*k1/2
+	double* g_coefs;
 	cudaMalloc(&g_coefs, 4*5*sizeof(double));
 	load_coef(g_coefs, step);
 
