@@ -4,14 +4,12 @@
 template<class state_type, class system>
 state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 
-	state_type* f0 = new state_type[dim];
-	state_type* f1 = new state_type[dim];
-	state_type* f2 = new state_type[dim];
-	state_type* f3 = new state_type[dim];
+	state_type* k1 = new state_type[dim];
+	state_type* k2 = new state_type[dim];
+	state_type* k3 = new state_type[dim];
+	state_type* k4 = new state_type[dim];
 
-	state_type* u1 = new state_type[dim];
-	state_type* u2 = new state_type[dim];
-	state_type* u3 = new state_type[dim];
+	state_type* tmp = new state_type[dim];
 
 	state_type* u = new state_type[dim];
 
@@ -22,36 +20,35 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 
 	//  Get four sample values of the derivative.
 	// k1
-	f(dim, u0, f0, t0);
+	f(dim, u0, k1, t0);
 
 	// k2
 	for (i=0; i<dim; i++) {
-		u1[i] = u0[i] + dt*f0[i]/2.0;
+		tmp[i] = u0[i] + dt*k1[i]/2.0;
 	}
-	f(dim, u1, f1, t1);
+	f(dim, tmp, k2, t1);
 
 	// k3
 	for ( i = 0; i < dim; i++ ) {
-		u2[i] = u0[i] + dt*f1[i]/2.0;
+		tmp[i] = u0[i] + dt*k2[i]/2.0;
 	}
-	f(dim, u2, f2, t2);
+	f(dim, tmp, k3, t2);
 
 	// k4
 	for(i=0; i<dim; i++) {
-		u3[i] = u0[i] + dt*f2[i];
+		tmp[i] = u0[i] + dt*k3[i];
 	}
-	f(dim, u3, f3, t3);
+	f(dim, tmp, k4, t3);
 
 	//  Combine them to estimate the solution.
 	for ( i = 0; i < dim; i++ ) {
-		u[i] = u0[i] + dt*(f0[i] + 2.0*f1[i] + 2.0*f2[i] + f3[i])/6.0;
+		u[i] = u0[i] + dt*(k1[i] + 2.0*k2[i] + 2.0*k3[i] + k4[i])/6.0;
 	}
 
 	//  Free memory.
-	delete[] f0;	delete[] f1;
-	delete[] f2;	delete[] f3;
-	delete[] u1;	delete[] u2;
-	delete[] u3;
+	delete[] k1;	delete[] k2;
+	delete[] k3;	delete[] k4;
+	delete[] tmp;
 
 	return u;
 }
@@ -94,18 +91,14 @@ template<class state_type, class system>
 state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	double eps, state_type *R, double *delta) {
 
-	state_type *f0 = new state_type[dim];
-	state_type *f1 = new state_type[dim];
-	state_type *f2 = new state_type[dim];
-	state_type *f3 = new state_type[dim];
-	state_type *f4 = new state_type[dim];
-	state_type *f5 = new state_type[dim];
+	state_type *k1 = new state_type[dim];
+	state_type *k2 = new state_type[dim];
+	state_type *k3 = new state_type[dim];
+	state_type *k4 = new state_type[dim];
+	state_type *k5 = new state_type[dim];
+	state_type *k6 = new state_type[dim];
 
-	state_type *u1 = new state_type[dim];
-	state_type *u2 = new state_type[dim];
-	state_type *u3 = new state_type[dim];
-	state_type *u4 = new state_type[dim];
-	state_type *u5 = new state_type[dim];
+	state_type *tmp = new state_type[dim];
 
 	state_type *w1 = new state_type[dim];
 	state_type *w2 = new state_type[dim];
@@ -119,42 +112,42 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 
 	//  Get four sample values of the derivative.
 	// k1
-	f(dim, u0, f0, t0);
+	f(dim, u0, k1, t0);
 
 	// k2
 	for (i=0; i<dim; i++) {
-		u1[i] = u0[i] + dt*f0[i]/4.0;
+		tmp[i] = u0[i] + dt*k1[i]/4.0;
 	}
-	f(dim, u1, f1, t1);
+	f(dim, tmp, k2, t1);
 
 	// k3
 	for ( i = 0; i < dim; i++ ) {
-		u2[i] = u0[i] + 3*dt*f0[i]/32.0 + 9*dt*f1[i]/32.0;
+		tmp[i] = u0[i] + 3*dt*k1[i]/32.0 + 9*dt*k2[i]/32.0;
 	}
-	f(dim, u2, f2, t2);
+	f(dim, tmp, k3, t2);
 
 	// k4
 	for(i=0; i<dim; i++) {
-		u3[i] = u0[i] + dt/2197 * (1932*f0[i] - 7200*f1[i] + 7296*f2[i]);
+		tmp[i] = u0[i] + dt/2197 * (1932*k1[i] - 7200*k2[i] + 7296*k3[i]);
 	}
-	f(dim, u3, f3, t3);
+	f(dim, tmp, k4, t3);
 
 	// k5
 	for(i=0; i<dim; i++) {
-		u4[i] = u0[i] + dt * (439.0/216*f0[i] - 8*f1[i] + 3680/513*f2[i] - 845/4104*f3[i]);
+		tmp[i] = u0[i] + dt * (439.0/216*k1[i] - 8*k2[i] + 3680/513*k3[i] - 845/4104*k4[i]);
 	}
-	f(dim, u4, f4, t4);
+	f(dim, tmp, k5, t4);
 
 	// k6
 	for(i=0; i<dim; i++) {
-		u5[i] = u0[i] + dt * (-8.0/27*f0[i] + 2*f1[i] - 3544/2565*f2[i] + 1859/4104*f3[i] - 11/40*f4[i]);
+		tmp[i] = u0[i] + dt * (-8.0/27*k1[i] + 2*k2[i] - 3544/2565*k3[i] + 1859/4104*k4[i] - 11/40*k5[i]);
 	}
-	f(dim, u5, f5, t5);
+	f(dim, tmp, k6, t5);
 
 	//  Combine them to estimate the solution.
 	for ( i = 0; i < dim; i++ ) {
-		w1[i] = u0[i] + dt*(25.0/216*f0[i] + 1408.0/2565*f2[i] + 2197.0/4104*f3[i] - f4[i]/5);
-		w2[i] = u0[i] + dt*(16.0/135*f0[i] + 6656.0/12825*f2[i] + 28561.0/56430*f3[i] - 9.0/50*f4[i] + 2.0/55*f5[i]);
+		w1[i] = u0[i] + dt*(25.0/216*k1[i] + 1408.0/2565*k3[i] + 2197.0/4104*k4[i] - k5[i]/5);
+		w2[i] = u0[i] + dt*(16.0/135*k1[i] + 6656.0/12825*k3[i] + 28561.0/56430*k4[i] - 9.0/50*k5[i] + 2.0/55*k6[i]);
 	}
 
 	// calculate |w1 - w2| ; norm L2
@@ -169,12 +162,10 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	*delta = 0.84* pow(eps/(*R), 1.0/4.0); // step
 
 	//  Free memory.
-	delete[] f0;	delete[] f1;
-	delete[] f2;	delete[] f3;
-	delete[] f4;	delete[] f5;
-	delete[] u1;	delete[] u2;
-	delete[] u3;	delete[] u4;
-	delete[] u5;	delete[] w2;
+	delete[] k1;	delete[] k2;
+	delete[] k3;	delete[] k4;
+	delete[] k5;	delete[] k6;
+	delete[] tmp;	delete[] w2;
 
 	return w1;
 }

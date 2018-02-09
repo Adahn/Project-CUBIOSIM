@@ -11,17 +11,15 @@
 
 using namespace std;
 
-// tested successfully
+// This kernel computes reactions rates
 __global__ void computeR(double* R, double* Y, double Ktl, double Ktr, double KR, double nR,
 						int n) {
 	int tid = blockIdx.x*blockDim.x + threadIdx.x;
 	int nreac = 2*n+1;
 
-	//for( int i=0; i<_n+1; i++ )
 	if(tid<n+1) {
 		R[tid] = Ktl*Y[tid+n+1];
 	}
-	//for( int i=1; i<_n; i++ )
 	else if(tid<2*n) {
 		R[tid] = Ktr/(1 + pow(Y[tid-n]/KR, nR));
 	}
@@ -30,7 +28,7 @@ __global__ void computeR(double* R, double* Y, double Ktl, double Ktr, double KR
 	}
 }
 
-// tested successfully
+// This kernel computes the decay, a component-wise product
 __global__ void computeDecay(double* res, double* Y, double* decay, int n) {
 	int tid = blockIdx.x*blockDim.x + threadIdx.x;
 	int nspec = 2*(n+1);
@@ -50,9 +48,9 @@ class Repressilator_ODE
 		int _nspec;
 
 		// system parameters
-		double* R;
-		double* decay;
-		double* S;
+		double* R;	// reaction rates
+		double* decay;	// decay vector
+		double* S;	// stochiometric matrix
 
 		// Rate parameters
 		double _Ktl;
@@ -65,15 +63,6 @@ class Repressilator_ODE
 		cublasStatus_t _status;
 		string _filename;
 		
-			// Model: dYdt = S*R - decay*Y
-			/*for( int i=0; i<_nspec; i++) {
-				dYdt[i] = 0;
-				for( int j=0; j<_nreac; j++) {
-					dYdt[i] += S[i *_nreac + j] * R[j];
-				}
-				dYdt[i] -= decay[i]*Y[i];
-			}*/
-			
 	public:	
 
 		Repressilator_ODE(int n, double dprot, double dmRNA, double Ktl, double Ktr, double KR, double nR, string filename):
@@ -94,27 +83,30 @@ class Repressilator_ODE
 			double* tmp_S = (double*)calloc( _nspec * _nreac, sizeof(double) );
 			double* tmp_decay = (double*)calloc(_nspec, sizeof(double));
 	
-			int i,j;
+			// Assemble S and decay on CPU
 			// S is stored in column major format (equivalent to S transpose)
+			// TODO use sparse format for S
+			int i,j;
 			for( i=0; i<_n+1; i++ ) {
-				tmp_decay[i] = dprot;	// prot
-				tmp_S[i + i*_nspec] = 1;	// S looks like Identity
+				tmp_decay[i] = dprot;
+				tmp_S[i + i*_nspec] = 1;
 			}
 			for( j=i; j<2*_n+1; j++ ) {		
-				tmp_decay[j] = dmRNA;	// RNA
-				tmp_S[j + j*_nspec] = 1;	// S looks like Identity
+				tmp_decay[j] = dmRNA;
+				tmp_S[j + j*_nspec] = 1;
 			}
-			tmp_decay[j] = dmRNA;		// last RNA
-			tmp_S[_nspec*_nreac-1] = 1;		// S last line is the same as the previous one
+			tmp_decay[j] = dmRNA;
+			tmp_S[_nspec*_nreac-1] = 1;
 			
 			// copy H2D
 			cudaMemcpy(S, tmp_S, _nspec*_nreac*sizeof(double), cudaMemcpyHostToDevice);
 			cudaMemcpy(decay, tmp_decay, _nspec*sizeof(double), cudaMemcpyHostToDevice);
 			
-			delete[] tmp_S;
-			delete[] tmp_decay;
+			free(tmp_S);
+			free(tmp_decay);
 		}
-		
+	
+		// Overloading operator () to compute the derivate	
 		void operator()( const int dim, double* Y, double* dYdt, const double t ) {
 
 			int thread_per_block = 512;
@@ -125,14 +117,14 @@ class Repressilator_ODE
 			computeDecay<<<blockSize,thread_per_block>>>(dYdt, Y, decay, _n);
 
 			// Model: dYdt = S*R - d*Y
-			//TODO sparse ?
+			//TODO use cuSparse 
 			double alpha = 1; double beta = -1;
 			_status = cublasDgemv(_handle, CUBLAS_OP_N, _nspec, _nreac, &alpha, S, _nspec,
 				R, 1, &beta, dYdt, 1);
 				
 		}
 
-		// utility functions
+		// This function stores the state given in argument
 		void observer( const int dim, double* Y, const double t )
 		{
 			ofstream file;

@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string>
 
+
+// Computes the sum of "n_v" arrays of size "n" stored at "v", 
+// each weighted by its corresponding coefficient at "coef"
 template<class state_type>
 __global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, int n_v)
 {
@@ -17,7 +20,6 @@ __global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, in
 			for(int j=0; j<n_v; j++) {
 				out[tid]+=coef[j]*v[j*n+tid];
 			}
-			//printf("out[%d] = %f\n", tid, out[tid]);
 		}
 		tid+=blockDim.x;
 
@@ -25,6 +27,9 @@ __global__ void sumk(int n, state_type* out, state_type* v, state_type* coef, in
 
 }
 
+
+// Loads Runge-Kutta coefficients arrays for each successive computation of 
+// k1, k2, k3, and k4 at g_coefs on the GPU.
 void load_coef(double* g_coefs, double step)
 {
 	double coefs[4*5];
@@ -44,6 +49,8 @@ void load_coef(double* g_coefs, double step)
 
 }
 
+
+// simple debug display function
 template<class state_type>
 void debug_GPU(state_type* gpu_v, int dim, std::string message){
 
@@ -55,7 +62,6 @@ void debug_GPU(state_type* gpu_v, int dim, std::string message){
 		std::cout << cpu_v[i] << "\t";
 	}
 	std::cout << '\n';
-
 
 	delete[] cpu_v;
 }

@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 
 	// repressilator initialisation
 	Repressilator_ODE repr_rk4(n, dprot, dmRNA, Ktl, Ktr, KR, nR, "bin/result_rk4.csv");
-	//Repressilator_ODE repr_rk45(n, dprot, dmRNA, Ktl, Ktr, KR, nR, "bin/result_rk45.csv");
+	Repressilator_ODE repr_rk45(n, dprot, dmRNA, Ktl, Ktr, KR, nR, "bin/result_rk45.csv");
 
 	// initial point
 	double* Y0 = (double*)calloc(2*(n+1), sizeof(double));	Y0[0] = 1;
@@ -88,6 +88,7 @@ int main(int argc, char **argv) {
 	timer.stop();
 	cout << "done : " << timer.getTime() << "s" << endl;
 */
+
 	free(Y0);
 
 	return 0;
