@@ -1,10 +1,10 @@
 #include "mesh.hh"
 
-Mesh :: Mesh(int nx, int ny, int hx, int hy, float phi0_)
+Mesh :: Mesh(int nx, int ny, float hx, float hy, float phi0)
 	:nx_(nx), ny_(ny), hx_(hx), hy_(hy)
 	{
-		int ax = (int)nx_*hx_;
-		int ay = (int)ny_*hy_;
+		int ax = (int)nx_/hx_;
+		int ay = (int)ny_/hy_;
 		X_.resize(ax);
 		Xold_.resize(ax);
 
@@ -13,11 +13,12 @@ Mesh :: Mesh(int nx, int ny, int hx, int hy, float phi0_)
 			Xold_[i].resize(ay);
 		}
 
-		X_[ax/2 -1][ay/2 -1]=phi0_; //source placed at the center of the grid
+		X_[ax/2 -1][ay/2 -1]=phi0_;
 		X_[ax/2][ay/2 -1]=phi0_;
 		X_[ax/2][ay/2]=phi0_;
 		X_[ax/2 -1][ay/2]=phi0_;
 
+		//cheaper than writing Xold_=X
 		Xold_[ax/2 -1][ay/2 -1]=phi0_;
 		Xold_[ax/2][ay/2 -1]=phi0_;
 		Xold_[ax/2][ay/2]=phi0_;
@@ -38,12 +39,12 @@ int Mesh::getNy() const
 {
 	return ny_;
 }
-int Mesh::getHx() const
+float Mesh::getHx() const
 {
 	return hx_;
 }
 
-int Mesh::getHy() const
+float Mesh::getHy() const
 {
 	return hy_;
 }
@@ -73,15 +74,14 @@ ostream& Mesh:: display(ostream& os) const
 		os << '\n';
 	}
 	os << '\n';
-	/*for (unsigned int i=0; i< X_.size() ; ++i)
+	for (unsigned int i=0; i< X_.size() ; ++i)
 	{
 		for (unsigned int j=0; j< X_[i].size() ; ++j)
 		{
 			os << X_[i][j] - Xold_[i][j] << " ";
 		}
 		os << '\n';
-	}*/
-	
+	}
 	return os;
 }
 
@@ -107,7 +107,7 @@ Mesh& Mesh::operator=(Mesh const& mesh)
 	hx_=mesh.hx_;
 	hy_=mesh.hy_;
 	X_=mesh.X_;
-	//Xold_=mesh.Xold_; //to calculate the error 
+	Xold_=mesh.Xold_;
 	return *this;
 }
 /*
@@ -119,3 +119,4 @@ int main()
 	cout << mesh<<endl;
 	return 0;
 }*/
+

@@ -1,5 +1,5 @@
 #include "fdm.hh"
-//#include "writeout.cc"
+
 
 FDM::FDM(Mesh mesh, float D, float d, int Nt) :	mesh_(mesh), D_(D), d_(d), Nt_(Nt)
 {}
@@ -41,9 +41,10 @@ void FDM::simulation()
 	for(int i=0 ; i<Nt_ ; ++i)
 	{
 		calculation();
-		results(i);
+		//results(i);
 	}
 }
+
 
 void FDM::results(int i)
 {
@@ -51,4 +52,16 @@ void FDM::results(int i)
 	sol.writeSol(i);
 }
 
-
+/*
+int main()
+{
+	Mesh mesh(10, 10, 1, 1);
+	FDM fdm(mesh, 10, 0.4, 100);
+	double debutCPU = my_gettimeofday();
+	fdm.simulation();
+	double finCPU = my_gettimeofday();
+	cout << "temps cpu : " <<  finCPU-debutCPU << endl;
+	//fdm.results();
+	return 0;
+}
+*/

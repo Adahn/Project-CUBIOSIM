@@ -7,7 +7,7 @@
 class FDM
 {
 	public:
-		FDM(Mesh mesh, float D=10.0, float d=0.4, int Nt=10000);
+		FDM(Mesh mesh, float D=10.0, float d=0.4, int Nt=1000);
 		double xx_discretization(int i, int j);
 		double yy_discretization(int i, int j);
 		double laplacien(int i, int j);
@@ -25,3 +25,4 @@ class FDM
 
 
 #endif
+

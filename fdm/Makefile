@@ -6,6 +6,7 @@ EXEC=main
 SRC=$(wildcard *.cc)
 OBJ=$(SRC:.cc=.o)
 
+.PHONY: all
 all: $(EXEC)
 
 main: $(OBJ)
@@ -17,7 +18,7 @@ main: $(OBJ)
 clean:
 	rm -f *.o
 	rm -f *~ 
-	rm solution*
-
-mrproper: clean
 	rm -f $(EXEC)
+	
+exec:
+	./$(EXEC)
