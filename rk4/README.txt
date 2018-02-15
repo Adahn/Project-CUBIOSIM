@@ -47,6 +47,7 @@ This directory consists of following files/directories:
 2) Call program: TODO LUCAS
 
 
+
 # -------------------- Modify programs -------------------------
 If you want to modify the programs/parameters, consider the comments of this form:
 
@@ -57,7 +58,7 @@ check these type of comments and you will see where you can change parameters/
 initial values etc.
 
 If you want to modify the model of the Repressilator, you can do this in the file
-inc/repressilator.hh 
+inc/repressilator.hh
 
 Normally you don't need to modify the solver Runge-Kutta methods in the file
 inc/runge_kutta.hh , except you optimise them
