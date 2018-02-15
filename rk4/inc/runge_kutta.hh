@@ -1,9 +1,11 @@
 #include <iostream>
 #include "utility.hh"
 
+/* Solver Runge-Kutta 4 method */
 template<class state_type, class system>
 state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 
+	// define the 4 intermediate calculation terms of the RK4 method
 	state_type* k1 = new state_type[dim];
 	state_type* k2 = new state_type[dim];
 	state_type* k3 = new state_type[dim];
@@ -53,6 +55,7 @@ state_type* rk4(int dim, system f, double t0, state_type* u0, double dt) {
 	return u;
 }
 
+/* Wrapper calling the RK4 method every time step */
 template<class state_type, class system>
 void rk4_wrapper(int dim, system f, state_type* initial_u,
         double t0, double t_max, double step) {
@@ -67,14 +70,15 @@ void rk4_wrapper(int dim, system f, state_type* initial_u,
 	}
 	f.observer(dim, u0, t0);
 
-	// loop over time
+	// break when end time is reached
 	while(t_max > t0) {
-		//std::cout << "ping" << std::endl;
+		// call rk4 solver
 		u1 = rk4<state_type, system>(dim, f, t0, u0, step);
 
 		t0 += step;		c += 1;
 		delete[] u0;	u0 = u1;
 
+		// write results every 10000's iteration
 		if( (c%10000)==0 ) {
 			f.observer(dim, u0, t0);
 		}
@@ -91,6 +95,7 @@ template<class state_type, class system>
 state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	double eps, state_type *R, double *delta) {
 
+	// define the 6 intermediate calculation terms of the RK4 method
 	state_type *k1 = new state_type[dim];
 	state_type *k2 = new state_type[dim];
 	state_type *k3 = new state_type[dim];
@@ -170,7 +175,7 @@ state_type* rk45(int dim, system f, double t0, state_type* u0, double dt,
 	return w1;
 }
 
-/* wrapps runge kutta Fehlberg method */
+/* wrapps runge kutta Fehlberg method (RK45) */
 template<class state_type, class system>
 void rk45_wrapper(int dim, system f, state_type* initial_u,
         double t0, double t_max, double step, double eps) {
@@ -187,8 +192,9 @@ void rk45_wrapper(int dim, system f, state_type* initial_u,
 	}
 	f.observer(dim, u0, t0);
 
-	// loop over time
+	// breaks when end time is reached
 	while(t_max > t0) {
+		// calling rk45 solver 
 		u1 = rk45<state_type, system>(dim, f, t0, u0, step, eps, &R, &delta );
 
 		if ( R <= eps ) {
