@@ -14,9 +14,9 @@ This directory consists of following files/directories:
            If you want to change the output directory, you can modify it in the Makefile
 
     - inc: Includes following header files:
-        - chCommandLine.h: TODO LUCAS
-        - chTimer.hpp: TODO LUCAS
-        - chTimer.h: TODO LUCAS
+        - chCommandLine.h: simple command line parsing functions.
+        - chTimer.h: simple time measurement functions.
+        - chTimer.hpp: c++ wrapper class for the chTimer.h functions.
         - runge_kutta.hh: Solvers for Runge-Kutta methods RK4  (normally no need to modify)
         - repressilator.hh: Class Repressilator describing the model: dYdt = S*R - d*Y
         - utility.hh: Helping functions
@@ -24,30 +24,28 @@ This directory consists of following files/directories:
     - lib: Normally empty, just added for completeness
 
     - src:
-        - repr_rngkutta.cu: Main function calling the solver (adapt parameters here!)
+        - repr_rngkutta.cu: Main function creating the biologic system class and calling the solver (adapt parameters here!)
 
     - script.sh: Bash script to test program for several input sizes (good for testing!)
 
 
 
 # --------------------- Requirements ------------------------------
-Make sure to have CUDA supporting graphic card, TODO LUCAS Explain better
+Make sure to have CUDA GPU and the appropriate driver. You also need the cuBLAS library. All of this is available at https://developer.nvidia.com/cuda-toolkit
 
 
 # ------------------- Getting started ----------------------
 
-1) Compile the program: when you are in the directory rk4, tape the following
-                        command:
-                        > make
+1) Compile the program using the Makefile with :
 
-                        The program gets compiled automatically
+                        > make
 
                         Remark: If you add or delete some files, don't forget to
                                 adapt the Makefile
                         Remark: If you want to delete compiled files
                                 > make clean
 
-2) Call program: TODO LUCAS
+2) Call program: you can use --help to see what is available in command line options.
 
 
 
@@ -64,4 +62,5 @@ If you want to modify the model of the Repressilator, you can do this in the fil
 inc/repressilator.hh
 
 Normally you don't need to modify the solver Runge-Kutta methods in the file
-inc/runge_kutta.hh , except you optimise them
+inc/runge_kutta.hh , except if you optimise it
+
