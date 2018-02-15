@@ -1,4 +1,4 @@
-CODE SEQUENTIEL : il ne s'agit pas du code sur la machine de l'école. Il manque les temps ici. Changement quand accès à la machine de l'école.
+CODE SEQUENTIEL : 
 
 classe Maillage dans (mesh.*) : 
 construit le maillage
@@ -15,5 +15,5 @@ Pour un pas suivant x et y, il faut réecrire la formule à chaque point en fonc
 
 CODE PARALLELE
 
-Quand accès à la machine de l'école
+dans nvidia.cu
 
