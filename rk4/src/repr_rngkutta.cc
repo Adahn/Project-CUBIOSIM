@@ -87,13 +87,12 @@ int main(int argc, char **argv) {
 
 	// !! Change parameters of solver if necessary !!
 	int dim = 2*(n+1); // Number of species (size of input vector)
-	system f = repr_rk4; // solver repr_rk4 (don't change this argument when calling rk4_wrapper)
 	double t0 = 0.0; // Start time of simulation
 	double t_max = 10000; // End time of simulation
 	double step = 1e-2; // Step size
 
 	rk4_wrapper<double, Repressilator_ODE&>
-			( dim, repr_rk4, Y0 , t0 , t_max , step);
+			( dim, repr_rk4, Y0 , t0 , t_max , step); // solver repr_rk4 (don't change this argument when calling rk4_wrapper)
 
 	timer.stop();
 	cout << "done : " << timer.getTime() << "s" << endl;
