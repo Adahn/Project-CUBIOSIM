@@ -1,3 +1,5 @@
+// Normaly no need to modify this file with the runge kutta solvers
+
 #include <iostream>
 #include "utility.hh"
 
@@ -194,7 +196,7 @@ void rk45_wrapper(int dim, system f, state_type* initial_u,
 
 	// breaks when end time is reached
 	while(t_max > t0) {
-		// calling rk45 solver 
+		// calling rk45 solver
 		u1 = rk45<state_type, system>(dim, f, t0, u0, step, eps, &R, &delta );
 
 		if ( R <= eps ) {
