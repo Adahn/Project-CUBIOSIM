@@ -14,9 +14,9 @@ This directory consists of following files/directories:
            If you want to change the output directory, you can modify it in the Makefile
 
     - inc: Includes following header files:
-        - chCommandLine.h: TODO LUCAS
-        - chTimer.hpp: TODO LUCAS
-        - chTimer.h: TODO LUCAS
+        - chCommandLine.h: simple command line parsing functions.
+        - chTimer.h: simple time measurement functions.
+        - chTimer.hpp: c++ wrapper class for the chTimer.h functions.
         - runge_kutta.hh: Solvers for Runge-Kutta methods RK4 and RK45 (normally no need to modify)
         - repressilator.hh: Class Repressilator describing the model: dYdt = S*R - d*Y
         - utility.hh: Helping functions
