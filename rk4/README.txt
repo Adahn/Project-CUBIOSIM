@@ -14,9 +14,9 @@ This directory consists of following files/directories:
            If you want to change the output directory, you can modify it in the Makefile
 
     - inc: Includes following header files:
-        - chCommandLine.h: TODO LUCAS
-        - chTimer.hpp: TODO LUCAS
-        - chTimer.h: TODO LUCAS
+        - chCommandLine.h: simple command line parsing functions.
+        - chTimer.hpp: simple time measurement functions.
+        - chTimer.h: c++ wrapper class for the chTimer.h functions.
         - runge_kutta.hh: Solvers for Runge-Kutta methods RK4 and RK45 (normally no need to modify)
         - repressilator.hh: Class Repressilator describing the model: dYdt = S*R - d*Y
         - utility.hh: Helping functions
@@ -33,8 +33,7 @@ This directory consists of following files/directories:
 
 # ------------------- Getting started ----------------------
 
-1) Compile the program: when you are in the directory rk4, tape the following
-                        command:
+1) Compile the program using the Makefile with :
                         > make
 
                         The program gets compiled automatically
@@ -44,7 +43,8 @@ This directory consists of following files/directories:
                         Remark: If you want to delete compiled files
                                 > make clean
 
-2) Call program: TODO LUCAS
+2) Call program: you can use --help to see what is available in command line options :
+                        > ./bin/rk4 --help
 
 
 

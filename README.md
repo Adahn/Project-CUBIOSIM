@@ -10,7 +10,8 @@ University project aiming to improve the performance in the calculation of biolo
     - sources: Collection of helpful articles, presentations, etc.
 
 ## Requirements
-CUDA requirements: TODO LUCAS
+CUDA requirements: In order to use the programs, one needs a CUDA compatible GPU with compute capability 3.5 or higher, and the appropriate driver. We are also using the cuBLAS library from the CUDA toolkit available at https://developer.nvidia.com/cuda-toolkit.
+
 Other requirements to use your programs ELise / Liliane ??
 
 ## Getting started

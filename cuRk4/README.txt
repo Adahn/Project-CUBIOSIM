@@ -31,13 +31,12 @@ This directory consists of following files/directories:
 
 
 # --------------------- Requirements ------------------------------
-Make sure to have CUDA GPU and the appropriate driver. You also need the cuBLAS library. All of this is available at https://developer.nvidia.com/cuda-toolkit
+Make sure to have a CUDA compatible GPU with the appropriate driver, and compute capability 3.5 or higher. You also need the cuBLAS library from the CUDA toolkit, available at https://developer.nvidia.com/cuda-toolkit
 
 
 # ------------------- Getting started ----------------------
 
 1) Compile the program using the Makefile with :
-
                         > make
 
                         Remark: If you add or delete some files, don't forget to
@@ -45,7 +44,8 @@ Make sure to have CUDA GPU and the appropriate driver. You also need the cuBLAS 
                         Remark: If you want to delete compiled files
                                 > make clean
 
-2) Call program: you can use --help to see what is available in command line options.
+2) Call program: you can use --help to see what is available in command line options :
+                        > ./bin/rk4 --help
 
 
 
