@@ -17,11 +17,11 @@ This directory consists of following files/directories:
         - chCommandLine.h: simple command line parsing functions.
         - chTimer.h: simple time measurement functions.
         - chTimer.hpp: c++ wrapper class for the chTimer.h functions.
-        - runge_kutta.hh: Solvers for Runge-Kutta methods RK4  (normally no need to modify)
+        - runge_kutta.hh: Solvers for Runge-Kutta order 4 method RK4  (normally no need to modify)
         - repressilator.hh: Class Repressilator describing the model: dYdt = S*R - d*Y
         - utility.hh: Helping functions
 
-    - lib: Normally empty, just added for completeness
+    - lib: Should be empty, just added for completeness
 
     - src:
         - repr_rngkutta.cu: Main function creating the biologic system class and calling the solver (adapt parameters here!)

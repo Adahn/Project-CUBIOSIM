@@ -8,9 +8,9 @@ This directory consists of following files/directories:
 
     - Makefile: Configuration for compilation
                 In line: all: ./bin/repr_rk45
-                you can modify the name of the compiled program 'repr_rk45'
+                you can modify the name of the binary 'repr_rk45'
 
-    - bin: The compiled executable will be stored in this directory
+    - bin: The compiled executable will be stored in this directory as well as the result of the simulation, in csv format.
            If you want to change the output directory, you can modify it in the Makefile
 
     - inc: Includes following header files:
@@ -21,7 +21,7 @@ This directory consists of following files/directories:
         - repressilator.hh: Class Repressilator describing the model: dYdt = S*R - d*Y
         - utility.hh: Helping functions
 
-    - lib: Normally empty, just added for completeness
+    - lib: Should be empty, just added for completeness
 
     - src:
         - repr_rngkutta.cc: Main function calling the solver (adapt parameters here!)
@@ -36,7 +36,7 @@ This directory consists of following files/directories:
 1) Compile the program using the Makefile with :
                         > make
 
-                        The program gets compiled automatically
+                        The program is compiled automatically
 
                         Remark: If you add or delete some files, don't forget to
                                 adapt the Makefile
