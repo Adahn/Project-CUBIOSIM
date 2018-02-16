@@ -23,5 +23,7 @@ LILIANE, ELISE how to use your programs? add explanation please :)
 
 ## Remarks / Known issues
 A clean management of the input size has yet to be implemented:
+
     - If the system has too many species and reactions for the stochastic matrix to be held in the memory, it will cause an error.
+
     - The size of GPU thread blocks is static. Thus, if grid for the species vector is too large for the GPU, it will result in errors when calling the kernel. These errors aren't checked for but should be obvious when looking at the results (something like all zeros arrays). To solve this problem, it is possible to give more work to each thread, split the computation into two kernel calls ( which might be optimised using CUDA streams), or both.
