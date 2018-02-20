@@ -22,4 +22,5 @@ If you want to check out the parallelised version of the Runge-Kutta method solv
 
 If you want to check out the parallelised version of odeint, check out the directory odeint and the command make -f Makefile2
 
+If you want to check out the parallelised version of the diffusion problem, check out the directory fdm and read the README.txt
 
