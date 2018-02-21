@@ -3,7 +3,7 @@ University project aiming to improve the performance in the calculation of biolo
 
 ## File Structure
     - cuRk4 : Parallelised version of the runge-kutta method (RK4) using CUDA, check out the README.txt in this directory to get started
-    - fdm : TODO LILIANE
+    - fdm : Simulation of the diffusion problem. Read the README.txt file to get started.
     - odeint : Makefile2 to execute thrust+odeint (repressilator_thrust.cc in /src (n species in /src/repressilator_n_thrust.cc))
     - read : Read.file.cc (to read resp. the dimensions, the coefficients of the vector of concentrations, the matrix S, and the vector of degradation)
     - rk4 : Sequential version of runge-kutta method (RK4) to solve biological systems, check out the README.txt in this directory to get started
